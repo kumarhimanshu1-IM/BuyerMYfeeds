@@ -6,6 +6,7 @@ import {
   ThumbsUp, ThumbsDown,
 } from 'lucide-react';
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
+import ConversationalCurated from './ConversationalCurated';
 import { fetchMcatId } from '../utils/mcat';
 import { fetchSpecs } from '../utils/specs';
 import {
@@ -1005,6 +1006,23 @@ const [localOnly, setLocalOnly] = useState(false);
               activeFilters={activeFilters}
             />
           )}
+          {aiMode && topPicks.length === 0 ? (
+            <ConversationalCurated
+              productName={submittedQuery}
+              specSections={specSections}
+              specsLoading={specsLoading}
+              activeFilters={activeFilters}
+              toggleFilter={toggleFilter}
+              quantityValue={quantityValue}
+              setQuantityValue={setQuantityValue}
+              quantityUnit={quantityUnit}
+              setQuantityUnit={setQuantityUnit}
+              quantityUnits={quantityUnits}
+              hasActiveFilters={hasActiveFilters}
+              onFindBestMatch={handleFindBestMatch}
+            />
+          ) : (
+            <>
           {/* ── Left Filter Panel — full width on msite, fixed rail on desktop ── */}
           {topPicks.length === 0 && <div
             className="flex-shrink-0 flex flex-col overflow-hidden w-full md:w-[300px] border-slate-200 md:border-r bg-white md:bg-[#fafafa]"
@@ -1184,6 +1202,8 @@ const [localOnly, setLocalOnly] = useState(false);
             ))}
 
           </div>
+            </>
+          )}
             </>
           )}
         </div>
