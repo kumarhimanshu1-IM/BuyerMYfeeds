@@ -1029,23 +1029,20 @@ const [localOnly, setLocalOnly] = useState(false);
               <div className="flex-shrink-0 mx-3 mb-1 border-t border-slate-200" />
             </div>
 
-            {/* Desktop — the header just holds the product name; this heading gives filters their own context */}
-            <p className="hidden md:block flex-shrink-0 mx-3 mt-3 mb-1 px-0.5 text-xs font-semibold text-slate-700">
-              Refine your requirement
+            {/* Desktop — the header just holds the product name; this heading gives filters
+                their own context. When the search was launched via Ask AI and no filters are
+                picked yet, the heading itself (not a separate block) carries the nudge toward
+                Find Best Match — same row, same height, no extra scroll or layout shift. */}
+            <p className="hidden md:flex flex-shrink-0 items-center gap-1 mx-3 mt-3 mb-1 px-0.5 text-xs font-semibold text-slate-700">
+              {aiMode && !hasActiveFilters ? (
+                <>
+                  <Sparkles className="w-3 h-3 text-fuchsia-500 flex-shrink-0" />
+                  Pick specs for your AI match
+                </>
+              ) : (
+                'Refine your requirement'
+              )}
             </p>
-
-            {/* Ask AI nudge — tells the buyer what to do next so the "Ask AI to find
-                best match" promise from the search suggestion reads as a staged
-                process (pick specs, then Find Best Match) rather than a dead end
-                once they land on the same manual refine panel as a normal search. */}
-            {aiMode && !hasActiveFilters && (
-              <div className="flex-shrink-0 mx-3 mb-2 flex items-start gap-2 rounded-lg bg-fuchsia-50/60 px-2.5 py-2">
-                <Sparkles className="w-3.5 h-3.5 text-fuchsia-500 flex-shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-snug text-fuchsia-900">
-                  Pick a few specs below, then tap <span className="font-semibold">Find Best Match</span> to get your AI picks.
-                </p>
-              </div>
-            )}
 
             <SpecFilterList
               specsLoading={specsLoading}
