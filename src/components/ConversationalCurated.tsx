@@ -336,7 +336,7 @@ export default function ConversationalCurated({
         style={{ maxWidth: 450 }}
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
-          <p className="text-xs font-semibold text-slate-500">IndiaMART Search Results</p>
+          <p className="text-xs font-semibold text-slate-500">Search Results</p>
         </div>
         {preview.length === 0 && (
           <p className="px-5 pt-3 text-sm text-slate-500">
