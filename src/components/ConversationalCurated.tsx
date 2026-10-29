@@ -199,7 +199,7 @@ export default function ConversationalCurated({
 
                   <div className="pl-9">
                     {section.type === 'quantity' ? (
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex flex-col md:flex-row md:items-center gap-1.5">
                         <input
                           type="text"
                           inputMode="numeric"
@@ -208,31 +208,33 @@ export default function ConversationalCurated({
                           onChange={e => setQuantityValue(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
                           placeholder="Qty"
-                          className="w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
+                          className="w-full md:w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
                         />
-                        {quantityUnits.map(unit => (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {quantityUnits.map(unit => (
+                            <button
+                              key={unit}
+                              type="button"
+                              onClick={() => setQuantityUnit(unit)}
+                              className={`text-sm px-3 py-2 rounded-full border transition-all ${
+                                quantityUnit === unit
+                                  ? 'bg-teal-50 border-teal-500 text-teal-700 font-medium'
+                                  : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600'
+                              }`}
+                            >
+                              {unit}
+                            </button>
+                          ))}
                           <button
-                            key={unit}
                             type="button"
-                            onClick={() => setQuantityUnit(unit)}
-                            className={`text-sm px-3 py-2 rounded-full border transition-all ${
-                              quantityUnit === unit
-                                ? 'bg-teal-50 border-teal-500 text-teal-700 font-medium'
-                                : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600'
-                            }`}
+                            onClick={answerQuantity}
+                            disabled={!quantityValue.trim()}
+                            aria-label="Continue"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
-                            {unit}
+                            <ArrowRight className="w-4 h-4" />
                           </button>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={answerQuantity}
-                          disabled={!quantityValue.trim()}
-                          aria-label="Continue"
-                          className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
-                        >
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
