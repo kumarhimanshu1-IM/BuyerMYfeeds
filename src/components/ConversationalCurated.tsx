@@ -271,7 +271,11 @@ export default function ConversationalCurated({
             {hasActiveFilters ? 'Matching sellers · updated' : 'Sellers in this category'}
           </p>
         </div>
-        <div key={activeFilters.join('|')} className="px-5 pb-5 flex flex-col gap-2.5 animate-loader-fade-in">
+        <div
+          key={activeFilters.join('|')}
+          className="px-5 pb-5 grid gap-2.5 animate-loader-fade-in"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}
+        >
           {preview.map(seller => (
             <FinalResultCard
               key={seller.id}
