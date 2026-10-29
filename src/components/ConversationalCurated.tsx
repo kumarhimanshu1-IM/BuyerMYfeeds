@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Sparkles, Check, Star, X } from 'lucide-react';
+import { Sparkles, Check, X } from 'lucide-react';
+import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
   id: string;
@@ -7,21 +8,6 @@ interface FilterSectionLike {
   type: 'pill' | 'checkbox' | 'quantity';
   options: string[];
   singleSelect?: boolean;
-}
-
-// Minimal shape this widget needs from SearchModal's full SellerCard — kept
-// narrow on purpose so this component doesn't depend on that type directly.
-interface PreviewSeller {
-  id: number;
-  name: string;
-  city: string;
-  spec: string;
-  price: string;
-  priceUnit: string;
-  rating: number;
-  reviews: number;
-  distance: number;
-  image: string;
 }
 
 interface ConversationalCuratedProps {
@@ -37,7 +23,12 @@ interface ConversationalCuratedProps {
   quantityUnits: string[];
   hasActiveFilters: boolean;
   onFindBestMatch: () => void;
-  previewSellers: PreviewSeller[];
+  // Full seller list (same data/shape the regular curated results screen uses) so the
+  // right rail can render the exact same FinalResultCard, just re-ranked per answer.
+  previewSellers: SellerCard[];
+  bestMatchId: number | null;
+  priceRequestedIds: number[];
+  setPriceRequestedIds: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
 // Plain-language question per known spec id — falls back to a generic
@@ -59,7 +50,7 @@ function questionFor(section: FilterSectionLike): string {
 // no matching field for (phase, type) still move the ranking — sellers are
 // re-scored by rating/distance each time — so every answer visibly reorders
 // or trims the list, even when it can't literally filter on that attribute.
-function rankPreview(sellers: PreviewSeller[], activeFilters: string[]): PreviewSeller[] {
+function rankPreview(sellers: SellerCard[], activeFilters: string[]): SellerCard[] {
   const powerPick = activeFilters.find(f => /kva/i.test(f));
   const pool = powerPick
     ? sellers.filter(s => s.spec.toLowerCase() === powerPick.toLowerCase())
@@ -86,6 +77,7 @@ export default function ConversationalCurated({
   productName, specSections, specsLoading, activeFilters, toggleFilter,
   quantityValue, setQuantityValue, quantityUnit, setQuantityUnit, quantityUnits,
   hasActiveFilters, onFindBestMatch, previewSellers,
+  bestMatchId, priceRequestedIds, setPriceRequestedIds,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -270,32 +262,25 @@ export default function ConversationalCurated({
         </div>
       </div>
 
-      {/* ── Right rail — matching sellers, always visible, re-ranks after every answer ── */}
+      {/* ── Right rail — matching sellers, always visible, re-ranks after every answer.
+          Same FinalResultCard the regular curated results screen uses, forced into its
+          msite row layout (compact) since this rail is narrower than the desktop grid. ── */}
       <div className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-y-auto">
         <div className="flex-shrink-0 px-5 pt-4 pb-2 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
           <p className="text-xs font-semibold text-slate-500">
-            {hasActiveFilters ? `Matching sellers · updated` : 'Sellers in this category'}
+            {hasActiveFilters ? 'Matching sellers · updated' : 'Sellers in this category'}
           </p>
         </div>
         <div key={activeFilters.join('|')} className="px-5 pb-5 flex flex-col gap-2.5 animate-loader-fade-in">
           {preview.map(seller => (
-            <div
+            <FinalResultCard
               key={seller.id}
-              className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-300 hover:shadow-sm transition-all"
-            >
-              <img src={seller.image} alt={seller.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-800 truncate">{seller.name}</p>
-                <p className="text-xs text-slate-500 truncate">{seller.spec} · {seller.city}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="flex items-center gap-0.5 text-xs text-amber-600">
-                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                    {seller.rating} <span className="text-slate-400">({seller.reviews})</span>
-                  </span>
-                </div>
-              </div>
-              <span className="flex-shrink-0 text-sm font-semibold text-slate-900">{seller.price}</span>
-            </div>
+              seller={seller}
+              compact
+              isBestMatch={seller.id === bestMatchId && !!seller.isBestMatch}
+              priceRequested={priceRequestedIds.includes(seller.id)}
+              onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}
+            />
           ))}
         </div>
       </div>

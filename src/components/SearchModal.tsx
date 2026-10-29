@@ -26,14 +26,14 @@ interface SearchModalProps {
 }
 
 // One product a seller lists under the buyer's category — the card scrolls through these.
-interface SellerProduct {
+export interface SellerProduct {
   name: string;
   price: string;
   priceUnit: string;
   image: string;
 }
 
-interface SellerCard {
+export interface SellerCard {
   id: number;
   name: string;
   city: string;
@@ -1021,6 +1021,9 @@ const [localOnly, setLocalOnly] = useState(false);
               hasActiveFilters={hasActiveFilters}
               onFindBestMatch={handleFindBestMatch}
               previewSellers={sellers}
+              bestMatchId={bestMatchId}
+              priceRequestedIds={priceRequestedIds}
+              setPriceRequestedIds={setPriceRequestedIds}
             />
           ) : (
             <>
@@ -2311,16 +2314,21 @@ function ResultsCarousel({
   );
 }
 
-interface FinalResultCardProps {
+export interface FinalResultCardProps {
   seller: SellerCard;
   isBestMatch: boolean;
   priceRequested: boolean;
   onAskPrice: () => void;
   ribbon?: string;
   ribbonTone?: 'amber' | 'teal' | 'slate';
+  // Forces the msite row layout (fixed thumbnail + info beside it) regardless of
+  // viewport width — used when this card renders inside a narrower rail (e.g. the
+  // Conversational Curated widget's results panel) where the desktop vertical
+  // card wouldn't fit well even though the viewport itself is desktop-sized.
+  compact?: boolean;
 }
 
-function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal' }: FinalResultCardProps) {
+export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false }: FinalResultCardProps) {
   const [ctaStage, setCtaStage] = useState<CtaStage>('idle');
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -2374,9 +2382,9 @@ function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTon
   }
 
   return (
-    <div className="flex flex-row md:flex-col gap-3 md:gap-0 rounded-xl border border-slate-200 bg-white overflow-hidden p-3 md:p-0">
-      {/* Photo — fixed thumbnail on msite, full-width square on desktop */}
-      <div className="relative w-28 h-28 md:w-full md:h-auto md:aspect-square overflow-hidden bg-slate-100 rounded-lg md:rounded-none flex-shrink-0">
+    <div className={`flex gap-3 rounded-xl border border-slate-200 bg-white overflow-hidden p-3 ${compact ? 'flex-row' : 'flex-row md:flex-col md:gap-0 md:p-0'}`}>
+      {/* Photo — fixed thumbnail on msite, full-width square on desktop (unless compact forces the msite layout) */}
+      <div className={`relative overflow-hidden bg-slate-100 flex-shrink-0 ${compact ? 'w-28 h-28 rounded-lg' : 'w-28 h-28 md:w-full md:h-auto md:aspect-square rounded-lg md:rounded-none'}`}>
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
@@ -2440,7 +2448,7 @@ function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTon
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-1.5 flex-1 min-w-0 md:p-3">
+      <div className={`flex flex-col gap-1.5 flex-1 min-w-0 ${compact ? '' : 'md:p-3'}`}>
         {/* Active product — follows the scroller above */}
         <div className="flex flex-col items-start gap-0.5 min-w-0 w-full">
           {activeItem.name && (
