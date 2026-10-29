@@ -294,7 +294,7 @@ export default function ConversationalCurated({
           <button
             onClick={onFindBestMatch}
             disabled={!hasActiveFilters}
-            className="group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-gradient-to-br from-[#239a94] via-[#1d8480] to-[#2e3192] shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5"
+            className="group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5"
           >
             <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
             <span className="relative flex items-center gap-1.5 text-sm tracking-wide">
