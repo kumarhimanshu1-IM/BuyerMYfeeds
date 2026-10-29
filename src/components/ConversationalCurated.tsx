@@ -309,18 +309,16 @@ export default function ConversationalCurated({
             an inner sheen, and a soft lift on hover instead of a flat filled button. */}
         <div className="flex-shrink-0 px-5 pb-5 pt-3">
           {allQuestionsDone && (
-            <p className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 mb-2 px-0.5 animate-loader-fade-in">
-              <Check className="w-3.5 h-3.5" strokeWidth={3} />
-              All set — ready for your best match
+            <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-2 px-0.5 animate-loader-fade-in">
+              <Check className="w-3 h-3 text-teal-600" strokeWidth={3} />
+              All set
             </p>
           )}
           <button
             onClick={onFindBestMatch}
             disabled={!hasActiveFilters}
-            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${
-              allQuestionsDone
-                ? 'ring-2 ring-teal-300 ring-offset-2'
-                : 'ring-1 ring-white/15'
+            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${
+              allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''
             }`}
           >
             <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
