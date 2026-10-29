@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sparkles, Check, ChevronRight, Pencil, ArrowRight } from 'lucide-react';
-import { FinalResultCard, type SellerCard } from './SearchModal';
+import { type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
   id: string;
@@ -60,39 +60,15 @@ function addPromptFor(section: FilterSectionLike): string {
 }
 
 
-// Ranks/filters the right-rail results as answers accumulate. Specs this demo
-// data actually carries (power, e.g. "25 kVA") narrow the list; filters it has
-// no matching field for (phase, type) still move the ranking — sellers are
-// re-scored by rating/distance each time — so every answer visibly reorders
-// or trims the list, even when it can't literally filter on that attribute.
-function rankPreview(sellers: SellerCard[], activeFilters: string[]): SellerCard[] {
-  const powerPick = activeFilters.find(f => /kva/i.test(f));
-  const pool = powerPick
-    ? sellers.filter(s => s.spec.toLowerCase() === powerPick.toLowerCase())
-    : sellers;
-  const base = pool.length > 0 ? pool : sellers;
-
-  // Deterministic "re-ranking" nudge per extra filter answered, so the order
-  // visibly shifts on each answer rather than just trimming the same list.
-  const nudge = activeFilters.length;
-  const scored = base.map(s => ({
-    seller: s,
-    score: s.rating * 10 - s.distance / 50 + ((s.id + nudge) % 3),
-  }));
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map(x => x.seller);
-}
-
 // The Ask AI landing experience, modelled on a search-engine AI split view:
 // a left rail where the AI asks one spec question at a time and the buyer's
 // answers build up a visible requirement summary, with Find Best Match as
 // the hero action — and a right rail of matching sellers that re-ranks after
 // every answer, always on screen rather than tucked below the fold.
 export default function ConversationalCurated({
-  specSections, specsLoading, activeFilters, toggleFilter,
+  productName, specSections, specsLoading, activeFilters, toggleFilter,
   quantityValue, setQuantityValue, quantityUnit, setQuantityUnit, quantityUnits,
   onFindBestMatch, previewSellers,
-  bestMatchId, priceRequestedIds, setPriceRequestedIds,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
   // Furthest point the buyer has ever reached. Editing an earlier answer (via the
@@ -103,11 +79,6 @@ export default function ConversationalCurated({
 
   const steps = specSections;
   const total = steps.length;
-
-  const preview = useMemo(
-    () => rankPreview(previewSellers, activeFilters),
-    [previewSellers, activeFilters]
-  );
 
   function goTo(i: number) {
     const clamped = Math.max(0, Math.min(total, i));
@@ -161,6 +132,17 @@ export default function ConversationalCurated({
       ? (quantityValue.trim() ? `${quantityValue} ${quantityUnit}` : null)
       : (activeFilters.find(f => section.options.includes(f)) ?? null);
   }
+
+  // Spec rows for the requirement card -- only questions the buyer actually answered
+  // (skipped ones are left out entirely, same rule as the chat's history bubbles).
+  const answeredSpecs = steps
+    .map(section => ({ label: section.label, value: answeredValueFor(section) }))
+    .filter((row): row is { label: string; value: string } => row.value !== null);
+
+  // Representative photo for the requirement card -- there's no dedicated category
+  // image wired in yet, so this borrows the first preview seller's product photo as a
+  // stand-in; swap for a real category/mcat image once one is available.
+  const requirementPhoto = previewSellers[0]?.image;
 
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
@@ -343,36 +325,42 @@ export default function ConversationalCurated({
         </div>
       </div>
 
-      {/* ── Right rail — plain results, re-ranks after every answer. Same FinalResultCard
-          the regular curated results screen uses, just given a shorter photo for this
-          narrower column. ── */}
+      {/* ── Right rail — the requirement building up as a single product-style card,
+          instead of a live results grid: photo on top, product name, then every
+          answered spec as a key: value row, growing as the chat is answered. ── */}
       <div
         className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-y-auto"
         style={{ maxWidth: 450 }}
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
-          <p className="text-xs font-semibold text-slate-500">Search Results</p>
+          <p className="text-xs font-semibold text-slate-500">Your Requirement</p>
         </div>
-        {preview.length === 0 && (
-          <p className="px-5 pt-3 text-sm text-slate-500">
-            No exact matches for that combination — showing closest options instead.
-          </p>
-        )}
-        <div
-          key={activeFilters.join('|')}
-          className="px-5 pt-3 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
-          style={{ gridTemplateColumns: 'repeat(2, minmax(0, 200px))' }}
-        >
-          {(preview.length > 0 ? preview : previewSellers).map(seller => (
-            <FinalResultCard
-              key={seller.id}
-              seller={seller}
-              photoHeight={110}
-              isBestMatch={seller.id === bestMatchId && !!seller.isBestMatch}
-              priceRequested={priceRequestedIds.includes(seller.id)}
-              onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}
-            />
-          ))}
+        <div className="px-5 pt-3 pb-5">
+          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            {requirementPhoto && (
+              <div className="w-full aspect-square bg-slate-100 overflow-hidden">
+                <img src={requirementPhoto} alt={productName} className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="p-4">
+              <p className="text-sm font-bold text-slate-900 capitalize truncate">{productName}</p>
+
+              {answeredSpecs.length === 0 ? (
+                <p className="mt-2 text-xs text-slate-400">
+                  Answer a question to start building your requirement.
+                </p>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2">
+                  {answeredSpecs.map(row => (
+                    <div key={row.label} className="flex items-baseline justify-between gap-3 text-sm animate-loader-fade-in">
+                      <span className="text-slate-500 flex-shrink-0">{row.label}</span>
+                      <span className="font-semibold text-slate-900 text-right truncate">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
