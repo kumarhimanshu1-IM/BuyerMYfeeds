@@ -280,6 +280,7 @@ export default function ConversationalCurated({
             <FinalResultCard
               key={seller.id}
               seller={seller}
+              photoHeight={110}
               isBestMatch={seller.id === bestMatchId && !!seller.isBestMatch}
               priceRequested={priceRequestedIds.includes(seller.id)}
               onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}

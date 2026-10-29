@@ -2328,9 +2328,13 @@ export interface FinalResultCardProps {
   // Conversational Curated widget's results panel) where the desktop vertical
   // card wouldn't fit well even though the viewport itself is desktop-sized.
   compact?: boolean;
+  // Overrides the desktop photo's aspect-square height with a fixed px value —
+  // used when the card sits in a narrow column where a full square photo makes
+  // the whole card look too tall relative to its width. Ignored when compact.
+  photoHeight?: number;
 }
 
-export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false }: FinalResultCardProps) {
+export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false, photoHeight }: FinalResultCardProps) {
   const [ctaStage, setCtaStage] = useState<CtaStage>('idle');
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -2386,7 +2390,12 @@ export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ri
   return (
     <div className={`flex gap-3 rounded-xl border border-slate-200 bg-white overflow-hidden p-3 ${compact ? 'flex-row' : 'flex-row md:flex-col md:gap-0 md:p-0'}`}>
       {/* Photo — fixed thumbnail on msite, full-width square on desktop (unless compact forces the msite layout) */}
-      <div className={`relative overflow-hidden bg-slate-100 flex-shrink-0 ${compact ? 'w-28 h-28 rounded-lg' : 'w-28 h-28 md:w-full md:h-auto md:aspect-square rounded-lg md:rounded-none'}`}>
+      <div
+        className={`relative overflow-hidden bg-slate-100 flex-shrink-0 ${
+          compact ? 'w-28 h-28 rounded-lg' : `w-28 h-28 md:w-full rounded-lg md:rounded-none ${photoHeight ? '' : 'md:h-auto md:aspect-square'}`
+        }`}
+        style={!compact && photoHeight ? { height: photoHeight } : undefined}
+      >
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
