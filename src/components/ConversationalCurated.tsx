@@ -262,7 +262,7 @@ export default function ConversationalCurated({
                       onClick={() => advancePast(stepIndex)}
                       className="mt-3 inline-flex items-center gap-0.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors group"
                     >
-                      Skip this question
+                      I'm not sure
                       <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   </div>
