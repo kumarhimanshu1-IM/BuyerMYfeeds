@@ -122,7 +122,7 @@ export default function ConversationalCurated({
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
-      <div className="w-full md:w-[400px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
+      <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
         <div className="flex-1 px-5 pt-4 pb-2">
           {total > 0 && (
             <div className="h-1 rounded-full bg-slate-100 overflow-hidden mb-4">
@@ -266,10 +266,10 @@ export default function ConversationalCurated({
       {/* ── Right rail — plain results, re-ranks after every answer. Same FinalResultCard
           the regular curated results screen uses, just given a shorter photo for this
           narrower column. ── */}
-      <div className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-y-auto">
+      <div className="hidden md:flex flex-shrink-0 flex-col min-w-0 bg-[#fafafa] overflow-y-auto" style={{ width: 450 }}>
         <div
           key={activeFilters.join('|')}
-          className="pl-5 pr-5 pt-4 pb-5 grid grid-cols-2 gap-2.5 justify-end animate-loader-fade-in"
+          className="px-5 pt-4 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
           style={{ gridTemplateColumns: 'repeat(2, minmax(0, 200px))' }}
         >
           {preview.map(seller => (
