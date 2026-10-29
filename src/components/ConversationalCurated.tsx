@@ -288,18 +288,20 @@ export default function ConversationalCurated({
         </div>
 
         {/* Hero CTA — this is the AI doing the actual work across the full category,
-            not just a step-nav button, so it gets the visual weight. */}
+            not just a step-nav button, so it gets the visual weight: layered gradient,
+            an inner sheen, and a soft lift on hover instead of a flat filled button. */}
         <div className="flex-shrink-0 px-5 pb-5 pt-3">
           <button
             onClick={onFindBestMatch}
             disabled={!hasActiveFilters}
-            className="w-full py-3.5 rounded-xl text-white font-semibold transition-all duration-300 bg-gradient-to-r from-[#1d8480] to-[#2e3192] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5 shadow-sm"
+            className="group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-gradient-to-br from-[#239a94] via-[#1d8480] to-[#2e3192] shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5"
           >
-            <span className="flex items-center gap-1.5 text-sm">
-              <Sparkles className="w-4 h-4" />
+            <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
+            <span className="relative flex items-center gap-1.5 text-sm tracking-wide">
+              <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
               Find Best Match
             </span>
-            <span className="text-[11px] font-normal text-white/80">
+            <span className="relative text-[11px] font-normal text-white/80">
               AI compares sellers across the category for you
             </span>
           </button>
