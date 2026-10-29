@@ -199,7 +199,7 @@ export default function ConversationalCurated({
 
                   <div className="pl-9">
                     {section.type === 'quantity' ? (
-                      <div className="flex flex-col md:flex-row md:items-center gap-1.5">
+                      <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-1.5">
                           <input
                             type="text"
@@ -209,14 +209,14 @@ export default function ConversationalCurated({
                             onChange={e => setQuantityValue(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
                             placeholder="Enter quantity here"
-                            className="flex-1 md:flex-none md:w-28 text-sm border-2 border-slate-900 rounded-full px-4 py-2.5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 transition-colors"
+                            className="flex-1 text-sm border-2 border-slate-900 rounded-full px-4 py-2.5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 transition-colors"
                           />
                           <button
                             type="button"
                             onClick={answerQuantity}
                             disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
                             <Send className="w-4 h-4" />
                           </button>
@@ -236,15 +236,6 @@ export default function ConversationalCurated({
                               {unit}
                             </button>
                           ))}
-                          <button
-                            type="button"
-                            onClick={answerQuantity}
-                            disabled={!quantityValue.trim()}
-                            aria-label="Continue"
-                            className="hidden md:flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
-                          >
-                            <Send className="w-4 h-4" />
-                          </button>
                         </div>
                       </div>
                     ) : (
