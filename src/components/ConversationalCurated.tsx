@@ -149,9 +149,13 @@ export default function ConversationalCurated({
   // jumping all the way down past everything that comes after it.
   const scrollRef = useRef<HTMLDivElement>(null);
   const liveQuestionRef = useRef<HTMLDivElement>(null);
+  const closingMessageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     liveQuestionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [stepIndex]);
+  useEffect(() => {
+    if (allQuestionsDone) closingMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [allQuestionsDone]);
 
   // What the buyer actually answered for a given section — null when it was skipped
   // (or hasn't been reached yet), so skipped questions never get a fabricated reply.
@@ -311,6 +315,17 @@ export default function ConversationalCurated({
               </div>
             );
           })}
+
+          {allQuestionsDone && (
+            <div ref={closingMessageRef} className="flex items-start gap-2.5 mb-2 animate-loader-fade-in">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5">
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </span>
+              <p className="text-sm font-semibold text-slate-900 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2.5">
+                Thanks, that's everything I need! Tap Find Best Match below to see your matches.
+              </p>
+            </div>
+          )}
 
         </div>
 
