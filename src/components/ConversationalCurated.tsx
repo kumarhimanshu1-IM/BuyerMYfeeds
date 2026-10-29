@@ -173,13 +173,13 @@ export default function ConversationalCurated({
                           key={option}
                           type="button"
                           onClick={() => answerPill(currentSection, option)}
-                          className={`flex items-center gap-1.5 h-10 px-3.5 rounded-lg text-sm font-medium border transition-colors ${
+                          className={`flex items-center gap-1.5 h-10 px-3.5 rounded-full border text-sm transition-all ${
                             active
-                              ? 'bg-teal-600 border-teal-600 text-white'
-                              : 'bg-white border-slate-200 text-slate-700 hover:border-teal-400 hover:bg-teal-50/60'
+                              ? 'bg-teal-100 border-teal-600 text-teal-800 font-medium'
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600'
                           }`}
                         >
-                          {active && <Check className="w-3.5 h-3.5" />}
+                          {active && <Check className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={3} />}
                           {option}
                         </button>
                       );
