@@ -146,7 +146,7 @@ export default function ConversationalCurated({
               question. Editing an earlier answer moves stepIndex back but never shrinks
               maxStepReached, so later already-answered questions stay put in the chat
               exactly where they are instead of disappearing until re-reached. */}
-          {!specsLoading && steps.slice(0, Math.max(stepIndex, maxStepReached)).map((section, i) => {
+          {!specsLoading && steps.slice(0, Math.max(stepIndex + 1, maxStepReached)).map((section, i) => {
             if (i === stepIndex) {
               return (
                 <div key={section.id} className="mb-5">
