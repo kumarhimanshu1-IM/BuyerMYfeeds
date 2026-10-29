@@ -319,7 +319,7 @@ export default function ConversationalCurated({
                 <Sparkles className="w-3.5 h-3.5 text-white" />
               </span>
               <p className="text-sm font-semibold text-slate-900 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2.5">
-                Thanks, that's everything I need! Tap Find Best Match below to see your matches.
+                Got it! Tap below and I'll find the best sellers for you.
               </p>
             </div>
           )}
