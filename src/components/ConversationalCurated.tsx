@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight, Pencil, ArrowRight } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil, Send } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -208,17 +208,17 @@ export default function ConversationalCurated({
                             value={quantityValue}
                             onChange={e => setQuantityValue(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
-                            placeholder="Qty"
-                            className="flex-1 md:flex-none md:w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
+                            placeholder="Enter quantity here"
+                            className="flex-1 md:flex-none md:w-28 text-sm border-2 border-slate-900 rounded-full px-4 py-2.5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500 transition-colors"
                           />
                           <button
                             type="button"
                             onClick={answerQuantity}
                             disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="md:hidden flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
-                            <ArrowRight className="w-4 h-4" />
+                            <Send className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5">
@@ -241,9 +241,9 @@ export default function ConversationalCurated({
                             onClick={answerQuantity}
                             disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="hidden md:flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
-                            <ArrowRight className="w-4 h-4" />
+                            <Send className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
