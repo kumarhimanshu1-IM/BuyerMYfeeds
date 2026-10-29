@@ -132,11 +132,15 @@ export default function ConversationalCurated({
     advancePast(stepIndex);
   }
 
-  // Keeps the newest question (or the "all set" message) in view as the chat grows,
-  // while the Find Best Match footer below stays put — same feel as a real chat.
+  // Keeps the live question in view as the chat grows, while the Find Best Match
+  // footer below stays put — same feel as a real chat. Scrolls the live question
+  // itself into view (not just the container's bottom) so that editing an earlier
+  // answer brings the question back up right where it was clicked from, instead of
+  // jumping all the way down past everything that comes after it.
   const scrollRef = useRef<HTMLDivElement>(null);
+  const liveQuestionRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    liveQuestionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [stepIndex]);
 
   // What the buyer actually answered for a given section — null when it was skipped
@@ -162,7 +166,7 @@ export default function ConversationalCurated({
           {!specsLoading && steps.slice(0, Math.max(stepIndex + 1, maxStepReached)).map((section, i) => {
             if (i === stepIndex) {
               return (
-                <div key={section.id} className="mb-5">
+                <div key={section.id} ref={liveQuestionRef} className="mb-5">
                   <div className="flex items-start gap-2.5 mb-3.5">
                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5">
                       <Sparkles className="w-3.5 h-3.5 text-white" />
