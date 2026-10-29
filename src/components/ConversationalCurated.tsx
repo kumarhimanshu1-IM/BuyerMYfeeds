@@ -45,6 +45,20 @@ function questionFor(section: FilterSectionLike): string {
   return QUESTION_COPY[section.id] ?? `Any preference on ${section.label}?`;
 }
 
+// Contextual label for the "add an answer" affordance on a skipped question --
+// named after what's missing (e.g. "+ Add power output") rather than a bare icon,
+// so it reads as "answer this" rather than a generic edit control.
+const ADD_PROMPT_COPY: Record<string, string> = {
+  quantity: 'Add quantity',
+  power: 'Add power output',
+  phase: 'Add phase',
+  gentype: 'Add type',
+};
+
+function addPromptFor(section: FilterSectionLike): string {
+  return ADD_PROMPT_COPY[section.id] ?? `Add ${section.label.toLowerCase()}`;
+}
+
 
 // Ranks/filters the right-rail results as answers accumulate. Specs this demo
 // data actually carries (power, e.g. "25 kVA") narrow the list; filters it has
@@ -242,8 +256,8 @@ export default function ConversationalCurated({
                     {questionFor(section)}
                   </p>
                 </div>
-                {value && (
-                  <div className="flex justify-end pl-9">
+                <div className="flex justify-end pl-9">
+                  {value ? (
                     <button
                       type="button"
                       onClick={() => goTo(i)}
@@ -253,8 +267,16 @@ export default function ConversationalCurated({
                       {value}
                       <Pencil className="w-3 h-3 flex-shrink-0 text-teal-700 opacity-0 -translate-x-1 group-hover:opacity-80 group-hover:translate-x-0 transition-all" />
                     </button>
-                  </div>
-                )}
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => goTo(i)}
+                      className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-teal-700 border border-dashed border-slate-200 hover:border-teal-300 rounded-full px-3 py-1.5 transition-colors"
+                    >
+                      + {addPromptFor(section)}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
