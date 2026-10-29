@@ -329,7 +329,7 @@ export default function ConversationalCurated({
           instead of a live results grid: photo on top, product name, then every
           answered spec as a key: value row, growing as the chat is answered. ── */}
       <div
-        className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-y-auto"
+        className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-hidden"
         style={{ maxWidth: 450 }}
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
@@ -338,7 +338,7 @@ export default function ConversationalCurated({
         <div className="px-5 pt-3 pb-5">
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
             {requirementPhoto && (
-              <div className="w-full aspect-square bg-slate-100 overflow-hidden">
+              <div className="w-20 h-20 mt-4 ml-4 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
                 <img src={requirementPhoto} alt={productName} className="w-full h-full object-cover" />
               </div>
             )}
