@@ -45,6 +45,19 @@ function questionFor(section: FilterSectionLike): string {
   return QUESTION_COPY[section.id] ?? `Any preference on ${section.label}?`;
 }
 
+// What the AI "says" in the right rail right after a given question gets answered —
+// ties the results update to that specific turn instead of a generic status line.
+const RESULT_COPY: Record<string, (value: string) => string> = {
+  quantity: value => `Got it, ${value} — here's who can supply that.`,
+  power: value => `Narrowing to ${value} sellers.`,
+  phase: value => `Checking ${value.toLowerCase()} compatibility across sellers.`,
+  gentype: value => `Filtering for ${value.toLowerCase()} options.`,
+};
+
+function resultMessageFor(section: FilterSectionLike, value: string): string {
+  return (RESULT_COPY[section.id] ?? (v => `Updated for ${section.label.toLowerCase()}: ${v}.`))(value);
+}
+
 // Ranks/filters the right-rail results as answers accumulate. Specs this demo
 // data actually carries (power, e.g. "25 kVA") narrow the list; filters it has
 // no matching field for (phase, type) still move the ranking — sellers are
@@ -80,6 +93,7 @@ export default function ConversationalCurated({
   bestMatchId, priceRequestedIds, setPriceRequestedIds,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [lastAnswer, setLastAnswer] = useState<{ section: FilterSectionLike; value: string } | null>(null);
 
   const steps = specSections;
   const total = steps.length;
@@ -98,6 +112,13 @@ export default function ConversationalCurated({
 
   function answerPill(section: FilterSectionLike, option: string) {
     toggleFilter(option, section);
+    setLastAnswer({ section, value: option });
+    goTo(stepIndex + 1);
+  }
+
+  function answerQuantity(section: FilterSectionLike) {
+    if (!quantityValue.trim()) return;
+    setLastAnswer({ section, value: `${quantityValue} ${quantityUnit}` });
     goTo(stepIndex + 1);
   }
 
@@ -149,7 +170,7 @@ export default function ConversationalCurated({
                       autoFocus
                       value={quantityValue}
                       onChange={e => setQuantityValue(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && quantityValue.trim()) goTo(stepIndex + 1); }}
+                      onKeyDown={e => { if (e.key === 'Enter') answerQuantity(currentSection); }}
                       placeholder="Enter quantity"
                       className="w-28 h-10 px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
                     />
@@ -267,9 +288,12 @@ export default function ConversationalCurated({
             <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5">
               <Sparkles className="w-3.5 h-3.5 text-white" />
             </span>
-            <p className="text-sm font-semibold text-slate-900 bg-white border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm">
-              {hasActiveFilters
-                ? `Here's what's matching so far, based on what you've told me.`
+            <p
+              key={lastAnswer ? `${lastAnswer.section.id}:${lastAnswer.value}` : 'intro'}
+              className="text-sm font-semibold text-slate-900 bg-white border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm animate-loader-fade-in"
+            >
+              {lastAnswer
+                ? resultMessageFor(lastAnswer.section, lastAnswer.value)
                 : `While you answer, here's who's selling ${productName.toLowerCase()} right now.`}
             </p>
           </div>
