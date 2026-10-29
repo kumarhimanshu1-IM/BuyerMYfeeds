@@ -735,6 +735,8 @@ const [localOnly, setLocalOnly] = useState(false);
             ? 'max-w-none md:max-w-[820px] md:h-auto'
             : topPicks.length > 0
             ? 'max-w-none md:max-w-[1080px] md:h-auto md:max-h-[calc(100vh-24px)]'
+            : aiMode
+            ? 'max-w-none md:max-w-[880px] md:h-[92vh] md:max-h-[calc(100vh-24px)]'
             : 'max-w-none md:max-w-[1000px] md:h-[92vh] md:max-h-[calc(100vh-24px)]'
         }`}
         onClick={e => e.stopPropagation()}
