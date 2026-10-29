@@ -128,7 +128,8 @@ export default function ConversationalCurated({
   }
 
   function answerQuantity() {
-    if (!quantityValue.trim()) return;
+    // Empty value is a valid submit here -- it just advances, same as "I'm not sure",
+    // so the button never needs to be disabled while the field is blank.
     advancePast(stepIndex);
   }
 
@@ -214,9 +215,8 @@ export default function ConversationalCurated({
                           <button
                             type="button"
                             onClick={answerQuantity}
-                            disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 text-white flex-shrink-0 transition-colors"
                           >
                             <ArrowRight className="w-4 h-4" />
                           </button>
