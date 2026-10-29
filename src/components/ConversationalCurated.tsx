@@ -106,14 +106,20 @@ export default function ConversationalCurated({
     goTo(stepIndex + 1);
   }
 
+  // What the buyer actually answered for a given section — null when it was skipped
+  // (or hasn't been reached yet), so skipped questions never get a fabricated reply.
+  function answeredValueFor(section: FilterSectionLike): string | null {
+    return section.type === 'quantity'
+      ? (quantityValue.trim() ? `${quantityValue} ${quantityUnit}` : null)
+      : (activeFilters.find(f => section.options.includes(f)) ?? null);
+  }
+
   // The requirement summary — one chip per spec the buyer has actually
   // answered, in question order, so "what I've told the AI" stays visible
   // and editable (tap a chip to jump back to that question) the whole time.
   const requirementChips = steps
     .map((section, i) => {
-      const value = section.type === 'quantity'
-        ? (quantityValue.trim() ? `${quantityValue} ${quantityUnit}` : null)
-        : (activeFilters.find(f => section.options.includes(f)) ?? null);
+      const value = answeredValueFor(section);
       return value ? { section, i, value } : null;
     })
     .filter((x): x is { section: FilterSectionLike; i: number; value: string } => x !== null);
@@ -124,6 +130,32 @@ export default function ConversationalCurated({
       <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
         <div className="flex-1 px-5 pt-4 pb-2">
           {specsLoading && <p className="text-sm text-slate-400 py-4">Loading specs…</p>}
+
+          {/* Chat history — every question already passed, scrollable above the current
+              one, so the buyer can scroll back and see what they answered against what.
+              Skipped questions show the AI's question only, no fabricated reply bubble. */}
+          {!specsLoading && steps.slice(0, stepIndex).map(section => {
+            const value = answeredValueFor(section);
+            return (
+              <div key={section.id} className="mb-4">
+                <div className="flex items-start gap-2.5 mb-1.5">
+                  <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5 opacity-70">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </span>
+                  <p className="text-sm text-slate-500 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2">
+                    {questionFor(section)}
+                  </p>
+                </div>
+                {value && (
+                  <div className="flex justify-end pl-9">
+                    <p className="text-sm font-medium text-white bg-teal-600 rounded-2xl rounded-tr-sm px-4 py-2">
+                      {value}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {!specsLoading && currentSection && !isDone && (
             <div className="mb-5">
