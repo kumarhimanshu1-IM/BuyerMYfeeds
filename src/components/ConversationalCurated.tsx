@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -131,7 +131,7 @@ export default function ConversationalCurated({
           {/* Chat history — every question already passed, scrollable above the current
               one, so the buyer can scroll back and see what they answered against what.
               Skipped questions show the AI's question only, no fabricated reply bubble. */}
-          {!specsLoading && steps.slice(0, stepIndex).map(section => {
+          {!specsLoading && steps.slice(0, stepIndex).map((section, i) => {
             const value = answeredValueFor(section);
             return (
               <div key={section.id} className="mb-4">
@@ -145,9 +145,15 @@ export default function ConversationalCurated({
                 </div>
                 {value && (
                   <div className="flex justify-end pl-9">
-                    <p className="text-sm font-medium text-white bg-teal-600 rounded-2xl rounded-tr-sm px-4 py-2">
+                    <button
+                      type="button"
+                      onClick={() => goTo(i)}
+                      title="Tap to change your answer"
+                      className="group relative flex items-center gap-1.5 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-2xl rounded-tr-sm pl-4 pr-3 py-2 transition-colors"
+                    >
                       {value}
-                    </p>
+                      <Pencil className="w-3 h-3 flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-80 group-hover:translate-x-0 transition-all" />
+                    </button>
                   </div>
                 )}
               </div>
