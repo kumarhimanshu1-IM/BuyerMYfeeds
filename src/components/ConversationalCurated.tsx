@@ -257,15 +257,6 @@ export default function ConversationalCurated({
               AI compares sellers across the category for you
             </span>
           </button>
-          {stepIndex > 0 && (
-            <button
-              type="button"
-              onClick={() => goTo(stepIndex - 1)}
-              className="mt-2 w-full text-center text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              Back
-            </button>
-          )}
         </div>
       </div>
 
