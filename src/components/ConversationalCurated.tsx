@@ -91,7 +91,7 @@ function rankPreview(sellers: SellerCard[], activeFilters: string[]): SellerCard
 export default function ConversationalCurated({
   specSections, specsLoading, activeFilters, toggleFilter,
   quantityValue, setQuantityValue, quantityUnit, setQuantityUnit, quantityUnits,
-  hasActiveFilters, onFindBestMatch, previewSellers,
+  onFindBestMatch, previewSellers,
   bestMatchId, priceRequestedIds, setPriceRequestedIds,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -133,14 +133,11 @@ export default function ConversationalCurated({
     advancePast(stepIndex);
   }
 
-  // True once every question has been answered or skipped AND at least one answer was
-  // actually given -- this is the moment the CTA should stop looking like a step button
-  // and start looking like the obvious next move. Reaching the end with nothing answered
-  // (all skipped) is a different state: the button is still correctly disabled there, so
-  // it gets its own quieter copy instead of a contradictory "ready" cue.
-  const reachedEnd = total > 0 && stepIndex >= total;
-  const allQuestionsDone = reachedEnd && hasActiveFilters;
-  const reachedEndEmptyHanded = reachedEnd && !hasActiveFilters;
+  // True once every question has been answered or skipped (no live question left to
+  // render) -- this is the moment the CTA should stop looking like a step button and
+  // start looking like the obvious next move. Find Best Match stays enabled even with
+  // nothing answered -- landing here at all is enough intent to search.
+  const allQuestionsDone = total > 0 && stepIndex >= total;
 
   // Keeps the live question in view as the chat grows, while the Find Best Match
   // footer below stays put — same feel as a real chat. Scrolls the live question
@@ -339,15 +336,9 @@ export default function ConversationalCurated({
               All set
             </p>
           )}
-          {reachedEndEmptyHanded && (
-            <p className="text-xs font-medium text-slate-400 mb-2 px-0.5 animate-loader-fade-in">
-              Answer at least one question to find your match
-            </p>
-          )}
           <button
             onClick={onFindBestMatch}
-            disabled={!hasActiveFilters}
-            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${
+            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 flex items-center justify-center gap-1.5 ${
               allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''
             }`}
           >
