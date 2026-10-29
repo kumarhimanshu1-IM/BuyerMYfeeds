@@ -284,9 +284,12 @@ export default function ConversationalCurated({
           the regular curated results screen uses, just given a shorter photo for this
           narrower column. ── */}
       <div className="hidden md:flex flex-shrink-0 flex-col min-w-0 bg-[#fafafa] overflow-y-auto" style={{ width: 450 }}>
+        <div className="flex-shrink-0 px-5 pt-4 pb-1 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
+          <p className="text-xs font-semibold text-slate-500">IndiaMART Search Results</p>
+        </div>
         <div
           key={activeFilters.join('|')}
-          className="px-5 pt-4 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
+          className="px-5 pt-3 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
           style={{ gridTemplateColumns: 'repeat(2, minmax(0, 200px))' }}
         >
           {preview.map(seller => (
