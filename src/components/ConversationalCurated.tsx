@@ -265,7 +265,7 @@ export default function ConversationalCurated({
       {/* ── Right rail — matching sellers, always visible, re-ranks after every answer.
           Same FinalResultCard the regular curated results screen uses, forced into its
           msite row layout (compact) since this rail is narrower than the desktop grid. ── */}
-      <div className="hidden md:flex flex-shrink-0 flex-col min-w-0 bg-[#fafafa] overflow-y-auto" style={{ width: 448 }}>
+      <div className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-y-auto">
         <div className="flex-shrink-0 px-5 pt-4 pb-2 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
           <p className="text-xs font-semibold text-slate-500">
             {hasActiveFilters ? 'Matching sellers · updated' : 'Sellers in this category'}
@@ -273,8 +273,7 @@ export default function ConversationalCurated({
         </div>
         <div
           key={activeFilters.join('|')}
-          className="px-5 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
-          style={{ gridTemplateColumns: 'repeat(2, minmax(0, 200px))' }}
+          className="px-5 pb-5 grid grid-cols-2 gap-2.5 max-w-sm mx-auto animate-loader-fade-in"
         >
           {preview.map(seller => (
             <FinalResultCard
