@@ -148,7 +148,7 @@ export default function ConversationalCurated({
 
               <div className="pl-9">
                 {currentSection.type === 'quantity' ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <input
                       type="text"
                       inputMode="numeric"
@@ -156,16 +156,23 @@ export default function ConversationalCurated({
                       value={quantityValue}
                       onChange={e => setQuantityValue(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
-                      placeholder="Enter quantity"
-                      className="w-28 h-10 px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                      placeholder="Qty"
+                      className="w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
                     />
-                    <select
-                      value={quantityUnit}
-                      onChange={e => setQuantityUnit(e.target.value)}
-                      className="h-10 px-2.5 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none"
-                    >
-                      {quantityUnits.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
+                    {quantityUnits.map(unit => (
+                      <button
+                        key={unit}
+                        type="button"
+                        onClick={() => setQuantityUnit(unit)}
+                        className={`text-sm px-3 py-2 rounded-full border transition-all ${
+                          quantityUnit === unit
+                            ? 'bg-teal-50 border-teal-500 text-teal-700 font-medium'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600'
+                        }`}
+                      >
+                        {unit}
+                      </button>
+                    ))}
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
