@@ -132,10 +132,14 @@ export default function ConversationalCurated({
     advancePast(stepIndex);
   }
 
-  // True once every question has been answered or skipped (no live question left to
-  // render) -- this is the moment the CTA should stop looking like a step button and
-  // start looking like the obvious next move.
-  const allQuestionsDone = total > 0 && stepIndex >= total;
+  // True once every question has been answered or skipped AND at least one answer was
+  // actually given -- this is the moment the CTA should stop looking like a step button
+  // and start looking like the obvious next move. Reaching the end with nothing answered
+  // (all skipped) is a different state: the button is still correctly disabled there, so
+  // it gets its own quieter copy instead of a contradictory "ready" cue.
+  const reachedEnd = total > 0 && stepIndex >= total;
+  const allQuestionsDone = reachedEnd && hasActiveFilters;
+  const reachedEndEmptyHanded = reachedEnd && !hasActiveFilters;
 
   // Keeps the live question in view as the chat grows, while the Find Best Match
   // footer below stays put — same feel as a real chat. Scrolls the live question
@@ -312,6 +316,11 @@ export default function ConversationalCurated({
             <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-2 px-0.5 animate-loader-fade-in">
               <Check className="w-3 h-3 text-teal-600 animate-loader-check-pop" strokeWidth={3} />
               All set
+            </p>
+          )}
+          {reachedEndEmptyHanded && (
+            <p className="text-xs font-medium text-slate-400 mb-2 px-0.5 animate-loader-fade-in">
+              Answer at least one question to find your match
             </p>
           )}
           <button
