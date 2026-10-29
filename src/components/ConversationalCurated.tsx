@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Sparkles, Check, X } from 'lucide-react';
+import { Sparkles, Check, X, ChevronRight } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -86,7 +86,6 @@ export default function ConversationalCurated({
   const total = steps.length;
   const currentSection = steps[stepIndex];
   const isDone = stepIndex >= total;
-  const progressPct = total > 0 ? ((isDone ? total : stepIndex) / total) * 100 : 0;
 
   const preview = useMemo(
     () => rankPreview(previewSellers, activeFilters),
@@ -124,15 +123,6 @@ export default function ConversationalCurated({
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
       <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
         <div className="flex-1 px-5 pt-4 pb-2">
-          {total > 0 && (
-            <div className="h-1 rounded-full bg-slate-100 overflow-hidden mb-4">
-              <div
-                className="h-full rounded-full bg-teal-600 transition-all duration-300"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          )}
-
           {specsLoading && <p className="text-sm text-slate-400 py-4">Loading specs…</p>}
 
           {!specsLoading && currentSection && !isDone && (
@@ -200,9 +190,10 @@ export default function ConversationalCurated({
                 <button
                   type="button"
                   onClick={() => goTo(stepIndex + 1)}
-                  className="mt-2.5 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                  className="mt-3 inline-flex items-center gap-0.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors group"
                 >
-                  Skip this
+                  Skip this question
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                 </button>
               </div>
             </div>
