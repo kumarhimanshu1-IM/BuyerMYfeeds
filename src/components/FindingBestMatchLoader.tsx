@@ -7,12 +7,12 @@ function getEvalStages(specLabels: string[], locationName: string): string[] {
   const hasSpecs = specLabels.length > 0 && specLabels[0] !== undefined;
   const specCount = specLabels.length;
   return [
-    'Scanning verified sellers for your requirement',
+    'Scanning verified suppliers for your requirement',
     hasSpecs
       ? `Matching ${specCount} of your selected ${specCount === 1 ? 'spec' : 'specs'}`
       : 'Matching your requirement',
     'Verifying GST, TrustSEAL & ratings',
-    `Finding sellers near ${locationName}`,
+    `Finding suppliers near ${locationName}`,
     'Ranking your personalised best matches',
   ];
 }
