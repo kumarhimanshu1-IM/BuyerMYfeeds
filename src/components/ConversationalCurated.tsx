@@ -274,13 +274,12 @@ export default function ConversationalCurated({
         <div
           key={activeFilters.join('|')}
           className="px-5 pb-5 grid gap-2.5 animate-loader-fade-in"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}
         >
           {preview.map(seller => (
             <FinalResultCard
               key={seller.id}
               seller={seller}
-              compact
               isBestMatch={seller.id === bestMatchId && !!seller.isBestMatch}
               priceRequested={priceRequestedIds.includes(seller.id)}
               onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}
