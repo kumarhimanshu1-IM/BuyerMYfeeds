@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Sparkles, Check, X, ChevronRight } from 'lucide-react';
+import { Sparkles, Check, ChevronRight } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -113,16 +113,6 @@ export default function ConversationalCurated({
       ? (quantityValue.trim() ? `${quantityValue} ${quantityUnit}` : null)
       : (activeFilters.find(f => section.options.includes(f)) ?? null);
   }
-
-  // The requirement summary — one chip per spec the buyer has actually
-  // answered, in question order, so "what I've told the AI" stays visible
-  // and editable (tap a chip to jump back to that question) the whole time.
-  const requirementChips = steps
-    .map((section, i) => {
-      const value = answeredValueFor(section);
-      return value ? { section, i, value } : null;
-    })
-    .filter((x): x is { section: FilterSectionLike; i: number; value: string } => x !== null);
 
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
@@ -242,27 +232,6 @@ export default function ConversationalCurated({
             </div>
           )}
 
-          {/* Requirement so far — this is the spec the AI is building up from the buyer's
-              answers; each chip is editable (jumps back to that question). */}
-          {requirementChips.length > 0 && (
-            <div className="pt-3 border-t border-slate-100">
-              <p className="text-xs font-semibold text-slate-400 mb-2">Your requirement so far</p>
-              <div className="flex flex-wrap gap-1.5">
-                {requirementChips.map(({ section, i, value }) => (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={() => goTo(i)}
-                    className="group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-full text-xs font-medium bg-teal-50 text-teal-800 border border-teal-100 hover:border-teal-300 transition-colors"
-                  >
-                    <span className="text-teal-500">{section.label || section.id}:</span>
-                    {value}
-                    <X className="w-3 h-3 text-teal-400 group-hover:text-teal-700" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Hero CTA — this is the AI doing the actual work across the full category,
