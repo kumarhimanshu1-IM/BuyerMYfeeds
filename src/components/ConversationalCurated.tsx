@@ -273,8 +273,7 @@ export default function ConversationalCurated({
         </div>
         <div
           key={activeFilters.join('|')}
-          className="px-5 pb-5 grid gap-2.5 animate-loader-fade-in"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}
+          className="px-5 pb-5 grid grid-cols-2 gap-2.5 animate-loader-fade-in"
         >
           {preview.map(seller => (
             <FinalResultCard
