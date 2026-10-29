@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Sparkles, Check, ChevronRight } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
@@ -106,6 +106,13 @@ export default function ConversationalCurated({
     goTo(stepIndex + 1);
   }
 
+  // Keeps the newest question (or the "all set" message) in view as the chat grows,
+  // while the Find Best Match footer below stays put — same feel as a real chat.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [stepIndex]);
+
   // What the buyer actually answered for a given section — null when it was skipped
   // (or hasn't been reached yet), so skipped questions never get a fabricated reply.
   function answeredValueFor(section: FilterSectionLike): string | null {
@@ -117,8 +124,8 @@ export default function ConversationalCurated({
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
-      <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
-        <div className="flex-1 px-5 pt-4 pb-2">
+      <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-hidden border-slate-200 md:border-r bg-white">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pt-4 pb-2">
           {specsLoading && <p className="text-sm text-slate-400 py-4">Loading specs…</p>}
 
           {/* Chat history — every question already passed, scrollable above the current
