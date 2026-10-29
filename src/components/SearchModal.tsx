@@ -1020,6 +1020,7 @@ const [localOnly, setLocalOnly] = useState(false);
               quantityUnits={quantityUnits}
               hasActiveFilters={hasActiveFilters}
               onFindBestMatch={handleFindBestMatch}
+              previewSellers={sellers}
             />
           ) : (
             <>
