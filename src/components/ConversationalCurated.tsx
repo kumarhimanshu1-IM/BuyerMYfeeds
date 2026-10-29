@@ -89,7 +89,6 @@ export default function ConversationalCurated({
 
   const steps = specSections;
   const total = steps.length;
-  const isDone = stepIndex >= total;
 
   const preview = useMemo(
     () => rankPreview(previewSellers, activeFilters),
@@ -259,17 +258,6 @@ export default function ConversationalCurated({
               </div>
             );
           })}
-
-          {isDone && total > 0 && (
-            <div className="flex items-center gap-2.5 mb-5">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0">
-                <Check className="w-3.5 h-3.5 text-white" />
-              </span>
-              <p className="text-sm font-semibold text-slate-800">
-                That's everything — hit Find Best Match, or tap a requirement below to change it.
-              </p>
-            </div>
-          )}
 
         </div>
 
