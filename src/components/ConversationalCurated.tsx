@@ -262,14 +262,22 @@ export default function ConversationalCurated({
         </div>
       </div>
 
-      {/* ── Right rail — matching sellers, always visible, re-ranks after every answer.
-          Same FinalResultCard the regular curated results screen uses, forced into its
-          msite row layout (compact) since this rail is narrower than the desktop grid. ── */}
+      {/* ── Right rail — the AI's running reply: a speech bubble (same treatment as the
+          left rail's questions) introducing the matches, followed by the actual cards.
+          Re-ranks after every answer; same FinalResultCard the regular curated results
+          screen uses, just given a shorter photo for this narrower column. ── */}
       <div className="hidden md:flex flex-shrink-0 flex-col min-w-0 bg-[#fafafa] overflow-y-auto" style={{ width: 448 }}>
-        <div className="flex-shrink-0 px-5 pt-4 pb-2 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
-          <p className="text-xs font-semibold text-slate-500">
-            {hasActiveFilters ? 'Matching sellers · updated' : 'Sellers in this category'}
-          </p>
+        <div className="flex-shrink-0 px-5 pt-4 pb-3 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
+          <div className="flex items-start gap-2.5">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </span>
+            <p className="text-sm font-semibold text-slate-900 bg-white border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm">
+              {hasActiveFilters
+                ? `Here's what's matching so far, based on what you've told me.`
+                : `While you answer, here's who's selling ${productName.toLowerCase()} right now.`}
+            </p>
+          </div>
         </div>
         <div
           key={activeFilters.join('|')}
