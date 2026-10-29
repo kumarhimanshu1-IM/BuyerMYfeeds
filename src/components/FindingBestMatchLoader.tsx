@@ -353,7 +353,7 @@ export default function FindingBestMatchLoader({
 
       {/* Progress ring — text sits below it on msite, beside it on desktop */}
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-3 md:gap-4">
-        <div className="relative w-[80px] h-[80px] flex items-center justify-center flex-shrink-0">
+        <div className="hidden md:flex relative w-[80px] h-[80px] items-center justify-center flex-shrink-0">
           <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80">
             <circle cx="40" cy="40" r="34" fill="none" stroke="#E2E8F0" strokeWidth="4" />
             <circle
