@@ -294,16 +294,11 @@ export default function ConversationalCurated({
           <button
             onClick={onFindBestMatch}
             disabled={!hasActiveFilters}
-            className="group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5"
+            className="group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
           >
             <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
-            <span className="relative flex items-center gap-1.5 text-sm tracking-wide">
-              <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
-              Find Best Match
-            </span>
-            <span className="relative text-[11px] font-normal text-white/80">
-              AI compares sellers across the category for you
-            </span>
+            <Sparkles className="relative w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
+            <span className="relative text-sm tracking-wide">Find Best Match</span>
           </button>
         </div>
       </div>
