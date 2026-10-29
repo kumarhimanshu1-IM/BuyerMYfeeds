@@ -81,6 +81,11 @@ export default function ConversationalCurated({
   bestMatchId, priceRequestedIds, setPriceRequestedIds,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  // Furthest point the buyer has ever reached. Editing an earlier answer (via the
+  // history bubbles) moves stepIndex back, but every step between the edited one and
+  // this frontier was already answered/skipped and shouldn't be re-walked or lost --
+  // so after re-answering, we jump straight back to the frontier instead of just +1.
+  const [maxStepReached, setMaxStepReached] = useState(0);
 
   const steps = specSections;
   const total = steps.length;
@@ -93,17 +98,26 @@ export default function ConversationalCurated({
   );
 
   function goTo(i: number) {
-    setStepIndex(Math.max(0, Math.min(total, i)));
+    const clamped = Math.max(0, Math.min(total, i));
+    setStepIndex(clamped);
+    setMaxStepReached(m => Math.max(m, clamped));
+  }
+
+  // After answering/skipping, move on -- but never past less than the frontier already
+  // reached, so editing an earlier question snaps back to where the buyer left off
+  // rather than forcing them to re-click through every already-answered question again.
+  function advancePast(i: number) {
+    goTo(Math.max(i + 1, maxStepReached));
   }
 
   function answerPill(section: FilterSectionLike, option: string) {
     toggleFilter(option, section);
-    goTo(stepIndex + 1);
+    advancePast(stepIndex);
   }
 
   function answerQuantity() {
     if (!quantityValue.trim()) return;
-    goTo(stepIndex + 1);
+    advancePast(stepIndex);
   }
 
   // Keeps the newest question (or the "all set" message) in view as the chat grows,
@@ -224,7 +238,7 @@ export default function ConversationalCurated({
 
                 <button
                   type="button"
-                  onClick={() => goTo(stepIndex + 1)}
+                  onClick={() => advancePast(stepIndex)}
                   className="mt-3 inline-flex items-center gap-0.5 text-xs font-semibold text-slate-500 hover:text-teal-700 transition-colors group"
                 >
                   Skip this question
