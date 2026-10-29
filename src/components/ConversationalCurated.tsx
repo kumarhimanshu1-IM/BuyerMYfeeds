@@ -200,16 +200,27 @@ export default function ConversationalCurated({
                   <div className="pl-9">
                     {section.type === 'quantity' ? (
                       <div className="flex flex-col md:flex-row md:items-center gap-1.5">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoFocus
-                          value={quantityValue}
-                          onChange={e => setQuantityValue(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
-                          placeholder="Qty"
-                          className="w-full md:w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
-                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            autoFocus
+                            value={quantityValue}
+                            onChange={e => setQuantityValue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') answerQuantity(); }}
+                            placeholder="Qty"
+                            className="flex-1 md:flex-none md:w-20 text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={answerQuantity}
+                            disabled={!quantityValue.trim()}
+                            aria-label="Continue"
+                            className="md:hidden flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {quantityUnits.map(unit => (
                             <button
@@ -230,7 +241,7 @@ export default function ConversationalCurated({
                             onClick={answerQuantity}
                             disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
                             <ArrowRight className="w-4 h-4" />
                           </button>
