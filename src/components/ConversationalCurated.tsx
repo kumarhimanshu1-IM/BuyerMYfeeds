@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight, Pencil } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil, ArrowRight } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -186,6 +186,15 @@ export default function ConversationalCurated({
                             {unit}
                           </button>
                         ))}
+                        <button
+                          type="button"
+                          onClick={answerQuantity}
+                          disabled={!quantityValue.trim()}
+                          aria-label="Continue"
+                          className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
