@@ -87,50 +87,61 @@ export default function ConversationalCurated({
 
         {!specsLoading && currentSection && !isDone && (
           <div className="py-5">
-            <p className="text-lg font-semibold text-slate-900 mb-4">{questionFor(currentSection)}</p>
+            {/* AI message — small avatar + speech-bubble question, so the question itself
+                still reads as the AI asking, not a bare form label */}
+            <div className="flex items-start gap-2.5 mb-4">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#1d8480] to-[#2e3192] flex-shrink-0 mt-0.5">
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </span>
+              <p className="text-base font-semibold text-slate-900 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-[90%]">
+                {questionFor(currentSection)}
+              </p>
+            </div>
 
-            {currentSection.type === 'quantity' ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoFocus
-                  value={quantityValue}
-                  onChange={e => setQuantityValue(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && quantityValue.trim()) goTo(stepIndex + 1); }}
-                  placeholder="Enter quantity"
-                  className="w-32 h-11 px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                />
-                <select
-                  value={quantityUnit}
-                  onChange={e => setQuantityUnit(e.target.value)}
-                  className="h-11 px-2.5 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none"
-                >
-                  {quantityUnits.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {currentSection.options.map(option => {
-                  const active = activeFilters.includes(option);
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => answerPill(currentSection, option)}
-                      className={`flex items-center gap-1.5 h-11 px-4 rounded-lg text-sm font-medium border transition-colors ${
-                        active
-                          ? 'bg-teal-600 border-teal-600 text-white'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-teal-400 hover:bg-teal-50/60'
-                      }`}
-                    >
-                      {active && <Check className="w-3.5 h-3.5" />}
-                      {option}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <div className="pl-9">
+              {currentSection.type === 'quantity' ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={quantityValue}
+                    onChange={e => setQuantityValue(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && quantityValue.trim()) goTo(stepIndex + 1); }}
+                    placeholder="Enter quantity"
+                    className="w-32 h-11 px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                  />
+                  <select
+                    value={quantityUnit}
+                    onChange={e => setQuantityUnit(e.target.value)}
+                    className="h-11 px-2.5 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none"
+                  >
+                    {quantityUnits.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {currentSection.options.map(option => {
+                    const active = activeFilters.includes(option);
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => answerPill(currentSection, option)}
+                        className={`flex items-center gap-1.5 h-11 px-4 rounded-lg text-sm font-medium border transition-colors ${
+                          active
+                            ? 'bg-teal-600 border-teal-600 text-white'
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-teal-400 hover:bg-teal-50/60'
+                        }`}
+                      >
+                        {active && <Check className="w-3.5 h-3.5" />}
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
