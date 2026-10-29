@@ -111,8 +111,13 @@ export default function ConversationalCurated({
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-white">
-      {/* Progress — one thin line, one label, nothing else competing for attention up top */}
-      <div className="flex-shrink-0 px-5 pt-4 pb-3">
+      {/* Progress — one thin line, one label, nothing else competing for attention up top.
+          Product name isn't repeated here — the modal header above already shows it. */}
+      <div className="flex-shrink-0 px-5 md:px-8 pt-4 pb-3 max-w-xl mx-auto w-full">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 mb-2">
+          <Sparkles className="w-3 h-3 flex-shrink-0" />
+          AI match for <span className="font-bold capitalize text-slate-800">{productName}</span>
+        </p>
         <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
           <div
             className="h-full rounded-full bg-teal-600 transition-all duration-300"
@@ -121,12 +126,11 @@ export default function ConversationalCurated({
         </div>
         <p className="mt-2 text-xs font-medium text-slate-400">
           {isDone ? 'All set' : `Question ${stepIndex + 1} of ${total}`}
-          <span className="mx-1.5 text-slate-300">·</span>
-          <span className="text-teal-700 font-semibold capitalize">{productName}</span>
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-2 flex flex-col">
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 py-2 flex flex-col items-center">
+      <div className="max-w-xl w-full flex flex-col">
         {specsLoading && <p className="text-sm text-slate-400 py-6">Loading specs…</p>}
 
         {!specsLoading && currentSection && !isDone && (
@@ -202,16 +206,14 @@ export default function ConversationalCurated({
         {/* Live preview row — reflects the picks so far; re-ranks/narrows after every
             answer so the buyer sees the match sharpen in real time, before committing
             to Find Best Match. */}
-        {preview.length > 0 && (
+        {hasActiveFilters && preview.length > 0 && (
           <div className="mt-2 pt-4 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-400 mb-2.5">
-              {hasActiveFilters ? 'Updating matches…' : 'Matching sellers'}
-            </p>
-            <div key={activeFilters.join('|')} className="flex gap-2.5 overflow-x-auto pb-1 animate-loader-fade-in">
+            <p className="text-xs font-medium text-slate-400 mb-2.5">Updating matches…</p>
+            <div key={activeFilters.join('|')} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 animate-loader-fade-in">
               {preview.map(seller => (
                 <div
                   key={seller.id}
-                  className="flex-shrink-0 w-36 rounded-lg border border-slate-200 overflow-hidden bg-white"
+                  className="rounded-lg border border-slate-200 overflow-hidden bg-white"
                 >
                   <img src={seller.image} alt={seller.name} className="w-full h-20 object-cover" />
                   <div className="p-2">
@@ -230,6 +232,7 @@ export default function ConversationalCurated({
             </div>
           </div>
         )}
+      </div>
       </div>
 
       {/* Single footer row — Back (text, appears once there's somewhere to go back to), Skip,
