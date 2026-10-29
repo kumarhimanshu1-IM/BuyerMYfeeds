@@ -310,7 +310,7 @@ export default function ConversationalCurated({
         <div className="flex-shrink-0 px-5 pb-5 pt-3">
           {allQuestionsDone && (
             <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-2 px-0.5 animate-loader-fade-in">
-              <Check className="w-3 h-3 text-teal-600" strokeWidth={3} />
+              <Check className="w-3 h-3 text-teal-600 animate-loader-check-pop" strokeWidth={3} />
               All set
             </p>
           )}
