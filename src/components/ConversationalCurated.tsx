@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight, Pencil, Send } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil, ArrowRight } from 'lucide-react';
 import { FinalResultCard, type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -216,9 +216,9 @@ export default function ConversationalCurated({
                             onClick={answerQuantity}
                             disabled={!quantityValue.trim()}
                             aria-label="Continue"
-                            className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#2e3192] hover:bg-[#262876] disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed text-white flex-shrink-0 transition-colors"
                           >
-                            <Send className="w-4 h-4" />
+                            <ArrowRight className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5">
