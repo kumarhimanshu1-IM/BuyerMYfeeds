@@ -118,11 +118,6 @@ export default function ConversationalCurated({
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
       <div className="w-full md:w-[400px] flex-shrink-0 flex flex-col overflow-y-auto border-slate-200 md:border-r bg-white">
         <div className="flex-1 px-5 pt-4 pb-2">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 mb-3">
-            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-            AI match for <span className="font-bold capitalize text-slate-800">{productName}</span>
-          </p>
-
           {total > 0 && (
             <div className="h-1 rounded-full bg-slate-100 overflow-hidden mb-4">
               <div
