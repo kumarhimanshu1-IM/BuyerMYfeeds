@@ -125,7 +125,7 @@ export default function ConversationalCurated({
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
       <div className="w-full md:w-[430px] flex-shrink-0 flex flex-col overflow-hidden border-slate-200 md:border-r bg-white">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pt-4 pb-2">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-5 pt-4 pb-2">
           {specsLoading && <p className="text-sm text-slate-400 py-4">Loading specs…</p>}
 
           {/* Chat history — every question already passed, scrollable above the current
