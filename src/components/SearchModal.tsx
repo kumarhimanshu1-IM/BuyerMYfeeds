@@ -479,6 +479,10 @@ const [localOnly, setLocalOnly] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const trimmed = submittedQuery.trim();
+    // Each new search query starts with a clean slate — stale picks from a previous
+    // query (different mcat, possibly unrelated/coincidentally-matching option text)
+    // must not show up pre-checked on this one's questions.
+    setActiveFilters([]);
     if (!trimmed) {
       setSpecSections(DEFAULT_FILTER_SECTIONS);
       setQuantityUnits(QUANTITY_UNITS);
