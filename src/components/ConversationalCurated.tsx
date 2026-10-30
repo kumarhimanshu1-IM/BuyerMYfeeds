@@ -381,7 +381,7 @@ export default function ConversationalCurated({
                 <label className="flex items-center justify-center gap-1.5 w-full py-2 border-y border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
                   <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
                   <span className="text-xs font-medium text-slate-600">
-                    {uploadedImage ? 'Replace with another photo' : 'Upload your own photo instead'}
+                    {uploadedImage ? 'Replace reference image' : 'Attach reference image'}
                   </span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                 </label>
@@ -389,8 +389,8 @@ export default function ConversationalCurated({
             ) : (
               <label className="flex flex-col items-center justify-center gap-1.5 w-full h-32 border-b border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
                 <ImageIcon className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-medium text-slate-500">Upload your own photo</span>
-                <span className="text-[11px] text-slate-400">A photo or spec sheet helps suppliers understand you better</span>
+                <span className="text-xs font-medium text-slate-500">Attach reference image</span>
+                <span className="text-[11px] text-slate-400">Helps suppliers quote against your exact requirement</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
               </label>
             )}
