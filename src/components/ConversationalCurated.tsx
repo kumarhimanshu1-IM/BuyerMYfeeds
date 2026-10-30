@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight, Pencil, ArrowRight, Upload, X } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil, ArrowRight, Image as ImageIcon, X } from 'lucide-react';
 import { type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -365,8 +365,8 @@ export default function ConversationalCurated({
                     fixed rectangle rather than getting cut off or stretched. */}
                 <img src={cardPhoto} alt={productName} className="w-full h-full object-contain" />
                 <label className="absolute bottom-2 right-2 flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-white/95 border border-slate-200 rounded-full px-2.5 py-1 cursor-pointer shadow-sm hover:border-teal-300 hover:text-teal-700 transition-colors">
-                  <Upload className="w-3 h-3" />
-                  {uploadedImage ? 'Replace' : 'Add your photo'}
+                  <ImageIcon className="w-3 h-3" />
+                  {uploadedImage ? 'Replace' : 'Have a specific one in mind?'}
                   <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                 </label>
                 {uploadedImage && (
@@ -383,8 +383,9 @@ export default function ConversationalCurated({
             )}
             {!cardPhoto && (
               <label className="flex flex-col items-center justify-center gap-1.5 w-full h-32 border-b border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
-                <Upload className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-medium text-slate-500">Add a photo or spec sheet</span>
+                <ImageIcon className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-medium text-slate-500">Have a specific one in mind?</span>
+                <span className="text-[11px] text-slate-400">Upload a photo or spec sheet</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
               </label>
             )}
