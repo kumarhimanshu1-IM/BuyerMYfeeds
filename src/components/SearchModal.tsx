@@ -498,6 +498,7 @@ const [localOnly, setLocalOnly] = useState(false);
     // query (different mcat, possibly unrelated/coincidentally-matching option text)
     // must not show up pre-checked on this one's questions.
     setActiveFilters([]);
+    setQuantityValue('');
     if (!trimmed) {
       setSpecSections(DEFAULT_FILTER_SECTIONS);
       setQuantityUnits(QUANTITY_UNITS);
@@ -1055,6 +1056,12 @@ const [localOnly, setLocalOnly] = useState(false);
             />
           )}
           {aiMode && topPicks.length === 0 ? (
+            // Keyed by submittedQuery -- editing the requirement name (via the header
+            // pencil) remounts this fresh, so the conversation restarts from question 1
+            // instead of continuing wherever stepIndex happened to be. The remount also
+            // replays this wrapper's fade-in, giving the reset a visible transition
+            // instead of an abrupt jump.
+            <div key={submittedQuery} className="flex-1 flex min-w-0 animate-loader-fade-in" style={{ height: '100%' }}>
             <ConversationalCurated
               productName={submittedQuery}
               specSections={specSections}
@@ -1073,6 +1080,7 @@ const [localOnly, setLocalOnly] = useState(false);
               priceRequestedIds={priceRequestedIds}
               setPriceRequestedIds={setPriceRequestedIds}
             />
+            </div>
           ) : (
             <>
           {/* ── Left Filter Panel — full width on msite, fixed rail on desktop ── */}

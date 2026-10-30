@@ -399,10 +399,8 @@ export default function ConversationalCurated({
               </label>
             )}
             <div className="p-5">
-              <p className="text-lg font-bold text-slate-900 capitalize truncate">{productName}</p>
-
               {answeredSpecs.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
+                <div className="flex flex-col gap-3">
                   {answeredSpecs.map(row => (
                     <div key={row.label} className="flex items-center gap-2.5 animate-loader-fade-in">
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-teal-100 flex-shrink-0">
