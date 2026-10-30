@@ -62,7 +62,7 @@ function addPromptFor(section: FilterSectionLike): string {
 export default function ConversationalCurated({
   productName, specSections, specsLoading, activeFilters, toggleFilter,
   quantityValue, setQuantityValue, quantityUnit, setQuantityUnit, quantityUnits,
-  onFindBestMatch, previewSellers,
+  hasActiveFilters, onFindBestMatch, previewSellers,
 }: ConversationalCuratedProps) {
   const [stepIndex, setStepIndex] = useState(0);
   // Furthest point the buyer has ever reached. Editing an earlier answer (via the
@@ -147,6 +147,23 @@ export default function ConversationalCurated({
   // photo slot (it's what actually represents what they want) and overrides the
   // generic category photo above.
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  // Find Best Match needs at least one answered spec to actually proceed (questions
+  // themselves stay optional/skippable individually, but at least one has to land).
+  // Nudges with a shake on the button itself rather than silently doing nothing --
+  // the parent's own shake feedback targets the refine panel, which doesn't exist
+  // on this screen.
+  const [ctaShake, setCtaShake] = useState(false);
+  const ctaShakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handleFindBestMatchClick() {
+    if (!hasActiveFilters) {
+      setCtaShake(true);
+      if (ctaShakeTimer.current) clearTimeout(ctaShakeTimer.current);
+      ctaShakeTimer.current = setTimeout(() => setCtaShake(false), 600);
+      return;
+    }
+    onFindBestMatch();
+  }
   function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -333,9 +350,9 @@ export default function ConversationalCurated({
             an inner sheen, and a soft lift on hover instead of a flat filled button. */}
         <div className="flex-shrink-0 px-5 pb-5 pt-3">
           <button
-            onClick={onFindBestMatch}
+            onClick={handleFindBestMatchClick}
             className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 flex items-center justify-center gap-1.5 ${
-              allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''
+              ctaShake ? 'animate-filter-shake' : allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''
             }`}
           >
             <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
