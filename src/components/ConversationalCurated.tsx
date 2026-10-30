@@ -324,7 +324,7 @@ export default function ConversationalCurated({
               <p className="text-sm font-semibold text-slate-900 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2.5">
                 {hasActiveFilters
                   ? 'Your best matching suppliers are just a tap away.'
-                  : 'The details above help find better matches for you. Answer at least one above, or continue to search.'}
+                  : "Sharper matches are just one answer away — or search right now if you'd rather."}
               </p>
             </div>
           )}
