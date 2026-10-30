@@ -139,10 +139,13 @@ export default function ConversationalCurated({
     .map(section => ({ label: section.label, value: answeredValueFor(section) }))
     .filter((row): row is { label: string; value: string } => row.value !== null);
 
-  // Representative photo for the requirement card -- there's no dedicated category
-  // image wired in yet, so this borrows the first preview seller's product photo as a
-  // stand-in; swap for a real category/mcat image once one is available.
-  const requirementPhoto = previewSellers[0]?.image;
+  // Representative photo for the requirement card -- there's no dedicated category/mcat
+  // image source wired in yet, so known product names get a real reference photo here;
+  // anything else falls back to the first preview seller's photo as a stand-in.
+  const requirementPhoto =
+    productName.trim().toLowerCase().includes('diesel generator')
+      ? 'https://5.imimg.com/data5/SELLER/Default/2022/3/UK/YY/WU/16312742/10kva-kirloskar-koel-diesel-generator-500x500.jpg'
+      : previewSellers[0]?.image;
 
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
