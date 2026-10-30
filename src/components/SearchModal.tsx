@@ -803,7 +803,7 @@ const [localOnly, setLocalOnly] = useState(false);
                       type="button"
                       onMouseDown={e => e.preventDefault()}
                       onClick={commitQueryDraft}
-                      className="flex-shrink-0 flex items-center gap-1 h-full pl-2.5 pr-3 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition-colors"
+                      className="ai-cta-gradient flex-shrink-0 flex items-center gap-1 h-full pl-2.5 pr-3 text-white text-xs font-semibold hover:brightness-110 transition-all"
                     >
                       <Sparkles className="w-3 h-3" />
                       Ask AI
