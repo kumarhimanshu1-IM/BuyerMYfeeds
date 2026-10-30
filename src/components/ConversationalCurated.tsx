@@ -352,8 +352,7 @@ export default function ConversationalCurated({
               </div>
             )}
             <div className="p-5">
-              <p className="text-[10px] font-semibold tracking-wide text-teal-600 uppercase">Requirement for</p>
-              <p className="mt-0.5 text-lg font-bold text-slate-900 capitalize truncate">{productName}</p>
+              <p className="text-lg font-bold text-slate-900 capitalize truncate">{productName}</p>
 
               {answeredSpecs.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
