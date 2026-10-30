@@ -790,7 +790,7 @@ const [localOnly, setLocalOnly] = useState(false);
                       if (e.key === 'Enter') commitQueryDraft();
                       if (e.key === 'Escape') setEditingQueryInline(false);
                     }}
-                    className="w-full text-sm font-bold text-slate-900 border border-teal-400 rounded-md px-1.5 py-0.5 -ml-1.5 focus:outline-none focus:ring-1 focus:ring-teal-200"
+                    className="w-full text-sm font-bold text-slate-900 border border-teal-400 rounded-md px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-200"
                   />
                 ) : (
                   <button
