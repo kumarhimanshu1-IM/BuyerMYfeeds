@@ -338,7 +338,7 @@ export default function ConversationalCurated({
           <p className="text-xs font-semibold text-slate-500">Your Requirement</p>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
-          <div className="w-full max-w-[340px] rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <div className="w-full max-w-[340px] rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
             {requirementPhoto && (
               <div className="w-full h-48 bg-slate-100 overflow-hidden">
                 <img src={requirementPhoto} alt={productName} className="w-full h-full object-cover" />
