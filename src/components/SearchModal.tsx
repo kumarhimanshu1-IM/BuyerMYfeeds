@@ -787,7 +787,7 @@ const [localOnly, setLocalOnly] = useState(false);
                   // Ask AI stays as a labelled segment (not just an icon -- that was the
                   // charm worth keeping), but flush-attached to the input inside one shared
                   // pill border instead of sitting beside it as a separate, offset button.
-                  <div className="flex items-center h-7 w-72 rounded-full border border-teal-400 bg-white overflow-hidden focus-within:ring-1 focus-within:ring-teal-200">
+                  <div className="flex items-center h-7 w-72 rounded-md border border-teal-400 bg-white overflow-hidden focus-within:ring-1 focus-within:ring-teal-200">
                     <input
                       autoFocus
                       value={queryDraft}
