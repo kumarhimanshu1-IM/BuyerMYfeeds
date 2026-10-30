@@ -218,20 +218,23 @@ function formatMatchHighlight(text: string): string | null {
 function mapSpecGroupsToFilterSections(
   groups: Awaited<ReturnType<typeof fetchSpecs>>
 ): { sections: FilterSection[]; unitOptions: string[] } {
-  const quantitySection: FilterSection = {
-    id: 'quantity',
-    label: 'Quantity',
-    type: 'quantity',
-    singleSelect: true,
-    options: [],
-  };
   // A "Unit"/"Quantity Unit" spec group is the same thing the quantity field's
   // own unit chips already ask for — fold its options into that one control
   // instead of showing it again as a separate spec section below.
   const isUnitGroup = (label: string) => /unit/i.test(label.trim());
   const unitGroup = groups.find(g => g.options.length > 0 && isUnitGroup(g.label));
+
+  // Only ask for quantity when the ISQ response itself includes a quantity spec --
+  // this used to be injected unconditionally, asking buyers for a quantity even on
+  // mcats whose ISQ panel never asked for one.
+  const isQuantityGroup = (label: string) => /quantity/i.test(label.trim()) && !isUnitGroup(label);
+  const quantityGroup = groups.find(g => isQuantityGroup(g.label));
+  const quantitySection: FilterSection | null = quantityGroup
+    ? { id: 'quantity', label: 'Quantity', type: 'quantity', singleSelect: true, options: [] }
+    : null;
+
   const pillSections: FilterSection[] = groups
-    .filter(g => g.options.length > 0 && !isUnitGroup(g.label))
+    .filter(g => g.options.length > 0 && !isUnitGroup(g.label) && !isQuantityGroup(g.label))
     .map(g => ({
       id: g.id,
       label: g.label,
@@ -240,7 +243,7 @@ function mapSpecGroupsToFilterSections(
       options: g.options.map(o => o.label),
     }));
   return {
-    sections: [quantitySection, ...pillSections],
+    sections: quantitySection ? [quantitySection, ...pillSections] : pillSections,
     unitOptions: unitGroup ? unitGroup.options.map(o => o.label) : QUANTITY_UNITS,
   };
 }
