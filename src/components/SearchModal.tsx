@@ -3,7 +3,7 @@ import {
   X, MapPin, ChevronDown, ChevronUp, Heart, Star, Sparkles, ArrowLeft,
   ShieldCheck, ShieldQuestion, ChevronLeft, ChevronRight, Loader2, Check, User, Send,
   Phone, SearchX, Search, SlidersHorizontal, Trophy, Info, Clock, TrendingUp,
-  ThumbsUp, ThumbsDown,
+  ThumbsUp, ThumbsDown, Pencil,
 } from 'lucide-react';
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
 import ConversationalCurated from './ConversationalCurated';
@@ -440,6 +440,21 @@ const [localOnly, setLocalOnly] = useState(false);
   const hasQuery = submittedQuery.trim().length > 0;
   const runSearch = (term: string) => { setSearchQuery(term); setSubmittedQuery(term); };
   const handleSubmitSearch = () => runSearch(searchQuery);
+
+  // Inline query editing on the AI landing screen's header -- replaces the back arrow
+  // there (going "back" doesn't make sense mid-conversation); a pencil next to the
+  // product name lets the buyer retype it in place instead.
+  const [editingQueryInline, setEditingQueryInline] = useState(false);
+  const [queryDraft, setQueryDraft] = useState(submittedQuery);
+  function startEditingQueryInline() {
+    setQueryDraft(submittedQuery);
+    setEditingQueryInline(true);
+  }
+  function commitQueryDraft() {
+    const trimmed = queryDraft.trim();
+    if (trimmed && trimmed !== submittedQuery) runSearch(trimmed);
+    setEditingQueryInline(false);
+  }
   const resultsAreStale = bestMatchId !== null && (
     activeFilters.length !== matchedFilters.length ||
     activeFilters.some(f => !matchedFilters.includes(f)) ||
@@ -749,7 +764,7 @@ const [localOnly, setLocalOnly] = useState(false);
         {(hasQuery || bestMatchId !== null) && (
         <div className="flex-shrink-0 flex flex-col gap-0 px-4 pt-2.5 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3 pb-2.5">
-            {(bestMatchId !== null || hasQuery) && (
+            {(bestMatchId !== null || hasQuery) && !(aiMode && topPicks.length === 0 && bestMatchId === null) && (
               <button
                 type="button"
                 onClick={bestMatchId === null ? handleBackToQuery : topPicks.length > 0 ? handleBackToQuery : handleBackToSearch}
@@ -761,7 +776,34 @@ const [localOnly, setLocalOnly] = useState(false);
               </button>
             )}
             <div className="flex-1 min-w-0 overflow-hidden">
-              {bestMatchId === null && hasQuery && (
+              {/* AI landing screen: no back arrow (doesn't make sense mid-conversation) --
+                  instead the product name is editable in place via a pencil affordance. */}
+              {aiMode && topPicks.length === 0 && bestMatchId === null && hasQuery && (
+                editingQueryInline ? (
+                  <input
+                    autoFocus
+                    value={queryDraft}
+                    onChange={e => setQueryDraft(e.target.value)}
+                    onBlur={commitQueryDraft}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') commitQueryDraft();
+                      if (e.key === 'Escape') setEditingQueryInline(false);
+                    }}
+                    className="w-full text-sm font-bold text-slate-900 border border-teal-400 rounded-md px-1.5 py-0.5 -ml-1.5 focus:outline-none focus:ring-1 focus:ring-teal-200"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startEditingQueryInline}
+                    className="group flex items-center gap-1.5 min-w-0 max-w-full"
+                    title="Tap to edit"
+                  >
+                    <span className="text-sm font-bold text-slate-900 truncate capitalize">{submittedQuery}</span>
+                    <Pencil className="w-3 h-3 flex-shrink-0 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </button>
+                )
+              )}
+              {!(aiMode && topPicks.length === 0 && bestMatchId === null) && bestMatchId === null && hasQuery && (
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate capitalize">
                     {submittedQuery}
