@@ -358,7 +358,6 @@ export default function ConversationalCurated({
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1">
           <p className="text-xs font-semibold text-slate-500">Building {buyerFirstName}'s requirement</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Updates live as you answer</p>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
           <div className="w-full max-w-[340px] rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
