@@ -148,22 +148,6 @@ export default function ConversationalCurated({
   // generic category photo above.
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  // Find Best Match needs at least one answered spec to actually proceed (questions
-  // themselves stay optional/skippable individually, but at least one has to land).
-  // Nudges with a shake on the button itself rather than silently doing nothing --
-  // the parent's own shake feedback targets the refine panel, which doesn't exist
-  // on this screen.
-  const [ctaShake, setCtaShake] = useState(false);
-  const ctaShakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  function handleFindBestMatchClick() {
-    if (!hasActiveFilters) {
-      setCtaShake(true);
-      if (ctaShakeTimer.current) clearTimeout(ctaShakeTimer.current);
-      ctaShakeTimer.current = setTimeout(() => setCtaShake(false), 600);
-      return;
-    }
-    onFindBestMatch();
-  }
   function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -349,15 +333,25 @@ export default function ConversationalCurated({
             not just a step-nav button, so it gets the visual weight: layered gradient,
             an inner sheen, and a soft lift on hover instead of a flat filled button. */}
         <div className="flex-shrink-0 px-5 pb-5 pt-3">
+          {/* Swaps between a plain "Search" (no specs answered yet -- sets honest
+              expectations that this is a broad search, not an AI-curated match) and
+              the full premium "Find Best Match" treatment once at least one spec has
+              landed. Same pattern already used on the refine panel's own sticky CTA. */}
           <button
-            onClick={handleFindBestMatchClick}
-            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 flex items-center justify-center gap-1.5 ${
-              ctaShake ? 'animate-filter-shake' : allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''
+            onClick={onFindBestMatch}
+            className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 flex items-center justify-center gap-1.5 ${
+              hasActiveFilters
+                ? `bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 ${allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''}`
+                : 'bg-slate-700 hover:bg-slate-800'
             }`}
           >
-            <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
-            <Sparkles className="relative w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
-            <span className="relative text-sm tracking-wide">Find Best Match</span>
+            {hasActiveFilters && (
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
+            )}
+            <span key={hasActiveFilters ? 'fbm' : 'search'} className="relative animate-loader-fade-in flex items-center justify-center gap-1.5">
+              {hasActiveFilters && <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />}
+              <span className="text-sm tracking-wide">{hasActiveFilters ? 'Find Best Match' : 'Search'}</span>
+            </span>
           </button>
         </div>
       </div>

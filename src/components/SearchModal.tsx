@@ -1095,7 +1095,7 @@ const [localOnly, setLocalOnly] = useState(false);
               setQuantityUnit={setQuantityUnit}
               quantityUnits={quantityUnits}
               hasActiveFilters={hasActiveFilters}
-              onFindBestMatch={() => handleFindBestMatch()}
+              onFindBestMatch={() => handleFindBestMatch({ requireFilters: false })}
               previewSellers={sellers}
               bestMatchId={bestMatchId}
               priceRequestedIds={priceRequestedIds}
