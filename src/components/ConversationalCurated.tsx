@@ -32,17 +32,19 @@ interface ConversationalCuratedProps {
 }
 
 // Plain-language question per known spec id — falls back to a generic
-// "Any preference on <label>?" for categories this map doesn't cover, so a
-// new/unknown mcat's specs still work without needing copy added here.
+// "What <label> works for you?" for categories this map doesn't cover, so a
+// new/unknown mcat's specs still work without needing copy added here (reads
+// naturally across most spec labels: material, color, size, finish, etc.,
+// and matches the phrasing already used for power above).
 const QUESTION_COPY: Record<string, string> = {
   quantity: 'How many do you need?',
   power: 'What power output works for you?',
   phase: 'Single phase or three phase?',
-  gentype: 'Any preference on the type?',
+  gentype: 'What type works for you?',
 };
 
 function questionFor(section: FilterSectionLike): string {
-  return QUESTION_COPY[section.id] ?? `Any preference on ${section.label}?`;
+  return QUESTION_COPY[section.id] ?? `What ${section.label.toLowerCase()} works for you?`;
 }
 
 // Contextual label for the "add an answer" affordance on a skipped question --
