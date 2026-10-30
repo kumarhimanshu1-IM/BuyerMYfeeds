@@ -31,20 +31,12 @@ interface ConversationalCuratedProps {
   setPriceRequestedIds: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
-// Plain-language question per known spec id — falls back to a generic
-// "What <label> works for you?" for categories this map doesn't cover, so a
-// new/unknown mcat's specs still work without needing copy added here (reads
-// naturally across most spec labels: material, color, size, finish, etc.,
-// and matches the phrasing already used for power above).
-const QUESTION_COPY: Record<string, string> = {
-  quantity: 'How many do you need?',
-  power: 'What power output works for you?',
-  phase: 'Single phase or three phase?',
-  gentype: 'What type works for you?',
-};
-
+// Plain, uniform "Enter <label>" phrasing for every question -- no per-id copy
+// needed, so a new/unknown mcat's specs work the same way without anything
+// added here, and it stays consistent with the quantity field's own
+// "Enter quantity here" placeholder.
 function questionFor(section: FilterSectionLike): string {
-  return QUESTION_COPY[section.id] ?? `What ${section.label.toLowerCase()} works for you?`;
+  return `Enter ${section.label}`;
 }
 
 // Contextual label for the "add an answer" affordance on a skipped question --
