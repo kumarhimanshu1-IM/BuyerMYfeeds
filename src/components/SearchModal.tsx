@@ -784,7 +784,10 @@ const [localOnly, setLocalOnly] = useState(false);
                   instead the product name is editable in place via a pencil affordance. */}
               {aiMode && topPicks.length === 0 && bestMatchId === null && hasQuery && (
                 editingQueryInline ? (
-                  <div className="flex items-center gap-1.5">
+                  // The Ask AI action lives inside the field itself (like a search bar's
+                  // embedded submit button) rather than as a separate button beside it --
+                  // that previous layout looked offset/misaligned next to the input.
+                  <div className="relative w-64">
                     <input
                       autoFocus
                       value={queryDraft}
@@ -794,16 +797,17 @@ const [localOnly, setLocalOnly] = useState(false);
                         if (e.key === 'Enter') commitQueryDraft();
                         if (e.key === 'Escape') setEditingQueryInline(false);
                       }}
-                      className="w-64 h-7 text-sm font-bold text-slate-900 border border-teal-400 rounded-md px-1.5 focus:outline-none focus:ring-1 focus:ring-teal-200"
+                      className="w-full h-7 text-sm font-bold text-slate-900 border border-teal-400 rounded-full pl-2.5 pr-7 focus:outline-none focus:ring-1 focus:ring-teal-200"
                     />
                     <button
                       type="button"
                       onMouseDown={e => e.preventDefault()}
                       onClick={commitQueryDraft}
-                      className="flex-shrink-0 flex items-center justify-center gap-1 h-7 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold pl-2 pr-2.5 transition-colors"
+                      aria-label="Ask AI"
+                      title="Ask AI"
+                      className="absolute inset-y-0 right-0.5 flex items-center justify-center w-6 h-6 my-auto rounded-full bg-teal-600 hover:bg-teal-700 text-white transition-colors"
                     >
                       <Sparkles className="w-3 h-3" />
-                      Ask AI
                     </button>
                   </div>
                 ) : (
