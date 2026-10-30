@@ -343,7 +343,7 @@ export default function ConversationalCurated({
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
           <div className="w-full max-w-[340px] rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
             {requirementPhoto && (
-              <div className="w-full h-48 bg-slate-50 overflow-hidden flex items-center justify-center">
+              <div className="w-full h-48 bg-white overflow-hidden flex items-center justify-center">
                 {/* object-contain, not object-cover -- the photo's own aspect ratio is kept intact
                     (no cropping/zooming into it), so a non-16:9 image just letterboxes within this
                     fixed rectangle rather than getting cut off or stretched. */}
