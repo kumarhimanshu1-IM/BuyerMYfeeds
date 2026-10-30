@@ -412,9 +412,6 @@ export default function ConversationalCurated({
                 </div>
               )}
             </div>
-            <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-100">
-              <p className="text-[11px] text-slate-500">This is what we'll search suppliers for</p>
-            </div>
           </div>
         </div>
       </div>
