@@ -162,6 +162,10 @@ export default function ConversationalCurated({
   }
   const cardPhoto = uploadedImage ?? requirementPhoto;
 
+  // No logged-in buyer name is wired into this flow yet -- stand-in until real
+  // session data reaches this component.
+  const buyerFirstName = 'Abir';
+
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
       {/* ── Left rail — AI asks, buyer answers, requirement builds up, Find Best Match is the hero ── */}
@@ -353,7 +357,7 @@ export default function ConversationalCurated({
         style={{ maxWidth: 450 }}
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1">
-          <p className="text-xs font-semibold text-slate-500">Your Requirement</p>
+          <p className="text-xs font-semibold text-slate-500">Building {buyerFirstName}'s requirement for {productName}</p>
           <p className="text-[11px] text-slate-400 mt-0.5">Updates live as you answer</p>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
