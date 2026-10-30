@@ -357,7 +357,7 @@ export default function ConversationalCurated({
         style={{ maxWidth: 450 }}
       >
         <div className="flex-shrink-0 px-5 pt-4 pb-1">
-          <p className="text-xs font-semibold text-slate-500">Building {buyerFirstName}'s requirement for {productName}</p>
+          <p className="text-xs font-semibold text-slate-500">Building {buyerFirstName}'s requirement</p>
           <p className="text-[11px] text-slate-400 mt-0.5">Updates live as you answer</p>
         </div>
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
