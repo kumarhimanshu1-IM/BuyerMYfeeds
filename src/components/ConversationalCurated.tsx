@@ -295,7 +295,9 @@ export default function ConversationalCurated({
                       className="group relative flex items-center gap-1.5 text-sm font-medium text-teal-900 bg-[#d8efe7] hover:bg-[#c5e6db] rounded-2xl rounded-tr-sm pl-4 pr-3 py-2 transition-colors"
                     >
                       {value}
-                      <Pencil className="w-3 h-3 flex-shrink-0 text-teal-700 opacity-0 -translate-x-1 group-hover:opacity-80 group-hover:translate-x-0 transition-all" />
+                      {/* Persistent, not hover-only -- a hover-gated hint is invisible on
+                          touch devices, so this needs to always show the bubble is tappable. */}
+                      <Pencil className="w-3 h-3 flex-shrink-0 text-teal-700 opacity-70 group-hover:opacity-100 transition-opacity" />
                     </button>
                   ) : (
                     <button
