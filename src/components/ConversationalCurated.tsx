@@ -128,10 +128,12 @@ export default function ConversationalCurated({
   }
 
   // Spec rows for the requirement card -- only questions the buyer actually answered
-  // (skipped ones are left out entirely, same rule as the chat's history bubbles).
+  // (skipped ones are left out entirely, same rule as the chat's history bubbles). Keeps
+  // each row's step index so clicking it can jump back to that question to edit it,
+  // same as tapping an answered bubble in the chat does.
   const answeredSpecs = steps
-    .map(section => ({ label: section.label, value: answeredValueFor(section) }))
-    .filter((row): row is { label: string; value: string } => row.value !== null);
+    .map((section, i) => ({ stepIndex: i, label: section.label, value: answeredValueFor(section) }))
+    .filter((row): row is { stepIndex: number; label: string; value: string } => row.value !== null);
 
   // Representative photo for the requirement card -- there's no dedicated category/mcat
   // image source wired in yet, so known product names get a real reference photo here;
@@ -399,15 +401,23 @@ export default function ConversationalCurated({
               {answeredSpecs.length > 0 && (
                 <div className="mt-3 flex flex-col gap-3">
                   {answeredSpecs.map(row => (
-                    <div key={row.label} className="flex items-center gap-2.5 animate-loader-fade-in">
+                    <button
+                      type="button"
+                      key={row.label}
+                      onClick={() => goTo(row.stepIndex)}
+                      title="Tap to change your answer"
+                      className="group flex items-center gap-2.5 w-full text-left animate-loader-fade-in"
+                    >
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-teal-100 flex-shrink-0">
                         <Check className="w-3 h-3 text-teal-600" strokeWidth={3} />
                       </span>
                       <span className="flex-1 flex items-baseline justify-between gap-3 text-sm min-w-0">
                         <span className="text-slate-500 flex-shrink-0">{row.label}</span>
-                        <span className="font-semibold text-slate-900 text-right truncate">{row.value}</span>
+                        <span className="font-semibold text-slate-900 text-right truncate underline decoration-dotted decoration-transparent underline-offset-2 group-hover:decoration-teal-500 group-hover:text-teal-700 transition-colors">
+                          {row.value}
+                        </span>
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
