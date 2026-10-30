@@ -345,11 +345,7 @@ export default function ConversationalCurated({
             <div className="p-4">
               <p className="text-sm font-bold text-slate-900 capitalize truncate">{productName}</p>
 
-              {answeredSpecs.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-400">
-                  Answer a question to start building your requirement.
-                </p>
-              ) : (
+              {answeredSpecs.length > 0 && (
                 <div className="mt-3 flex flex-col gap-2">
                   {answeredSpecs.map(row => (
                     <div key={row.label} className="flex items-baseline justify-between gap-3 text-sm animate-loader-fade-in">
