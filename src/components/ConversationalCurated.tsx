@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, Check, ChevronRight, Pencil, ArrowRight } from 'lucide-react';
+import { Sparkles, Check, ChevronRight, Pencil, ArrowRight, Upload, X } from 'lucide-react';
 import { type SellerCard } from './SearchModal';
 
 interface FilterSectionLike {
@@ -146,6 +146,21 @@ export default function ConversationalCurated({
     productName.trim().toLowerCase().includes('diesel generator')
       ? 'https://5.imimg.com/data5/SELLER/Default/2022/3/UK/YY/WU/16312742/10kva-kirloskar-koel-diesel-generator-500x500.jpg'
       : previewSellers[0]?.image;
+
+  // Buyer's own reference/spec image -- when provided, this takes over the card's
+  // photo slot (it's what actually represents what they want) and overrides the
+  // generic category photo above.
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadedImage(url => {
+      if (url) URL.revokeObjectURL(url);
+      return URL.createObjectURL(file);
+    });
+    e.target.value = '';
+  }
+  const cardPhoto = uploadedImage ?? requirementPhoto;
 
   return (
     <div className="flex-1 flex min-w-0" style={{ height: '100%' }}>
@@ -343,13 +358,40 @@ export default function ConversationalCurated({
         </div>
         <div className="flex-1 flex items-center justify-center px-6 pb-8">
           <div className="w-full max-w-[340px] rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            {requirementPhoto && (
-              <div className="w-full h-48 bg-white overflow-hidden flex items-center justify-center">
+            {cardPhoto && (
+              <div className="relative w-full h-48 bg-white overflow-hidden flex items-center justify-center group">
                 {/* object-contain, not object-cover -- the photo's own aspect ratio is kept intact
                     (no cropping/zooming into it), so a non-16:9 image just letterboxes within this
                     fixed rectangle rather than getting cut off or stretched. */}
-                <img src={requirementPhoto} alt={productName} className="w-full h-full object-contain" />
+                <img src={cardPhoto} alt={productName} className="w-full h-full object-contain" />
+                {uploadedImage && (
+                  <span className="absolute top-2 left-2 text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                    Your reference photo
+                  </span>
+                )}
+                <label className="absolute bottom-2 right-2 flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-white/95 border border-slate-200 rounded-full px-2.5 py-1 cursor-pointer shadow-sm hover:border-teal-300 hover:text-teal-700 transition-colors">
+                  <Upload className="w-3 h-3" />
+                  {uploadedImage ? 'Replace' : 'Add your photo'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                </label>
+                {uploadedImage && (
+                  <button
+                    type="button"
+                    onClick={() => setUploadedImage(url => { if (url) URL.revokeObjectURL(url); return null; })}
+                    aria-label="Remove your photo"
+                    className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-white/95 border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 shadow-sm transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
+            )}
+            {!cardPhoto && (
+              <label className="flex flex-col items-center justify-center gap-1.5 w-full h-32 border-b border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                <Upload className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-medium text-slate-500">Add a photo or spec sheet</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+              </label>
             )}
             <div className="p-5">
               <p className="text-lg font-bold text-slate-900 capitalize truncate">{productName}</p>
