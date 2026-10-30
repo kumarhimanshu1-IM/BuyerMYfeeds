@@ -325,32 +325,40 @@ export default function ConversationalCurated({
         </div>
       </div>
 
-      {/* ── Right rail — the requirement building up as a single product-style card,
-          instead of a live results grid: photo on top, product name, then every
-          answered spec as a key: value row, growing as the chat is answered. ── */}
+      {/* ── Right rail — the requirement building up as a single product-style card.
+          Vertically centred and sized to actually use the rail's space (rather than a
+          small card floating in a mostly-empty column), with a richer layout: photo,
+          product identity, a progress readout, then every answered spec as its own
+          row with a teal check marker -- growing as the chat is answered. ── */}
       <div
         className="hidden md:flex flex-1 flex-col min-w-0 bg-[#fafafa] overflow-hidden"
         style={{ maxWidth: 450 }}
       >
-        <div className="flex-shrink-0 px-5 pt-4 pb-1 sticky top-0 bg-[#fafafa]/95 backdrop-blur-sm">
+        <div className="flex-shrink-0 px-5 pt-4 pb-1">
           <p className="text-xs font-semibold text-slate-500">Your Requirement</p>
         </div>
-        <div className="px-5 pt-3 pb-5">
-          <div className="max-w-[260px] mx-auto rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+        <div className="flex-1 flex items-center justify-center px-6 pb-8">
+          <div className="w-full max-w-[340px] rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm">
             {requirementPhoto && (
-              <div className="w-full h-28 bg-slate-100 overflow-hidden">
+              <div className="w-full h-48 bg-slate-100 overflow-hidden">
                 <img src={requirementPhoto} alt={productName} className="w-full h-full object-cover" />
               </div>
             )}
-            <div className="p-4">
-              <p className="text-sm font-bold text-slate-900 capitalize truncate">{productName}</p>
+            <div className="p-5">
+              <p className="text-[10px] font-semibold tracking-wide text-teal-600 uppercase">Requirement for</p>
+              <p className="mt-0.5 text-lg font-bold text-slate-900 capitalize truncate">{productName}</p>
 
               {answeredSpecs.length > 0 && (
-                <div className="mt-3 flex flex-col gap-2">
+                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
                   {answeredSpecs.map(row => (
-                    <div key={row.label} className="flex items-baseline justify-between gap-3 text-sm animate-loader-fade-in">
-                      <span className="text-slate-500 flex-shrink-0">{row.label}</span>
-                      <span className="font-semibold text-slate-900 text-right truncate">{row.value}</span>
+                    <div key={row.label} className="flex items-center gap-2.5 animate-loader-fade-in">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-teal-100 flex-shrink-0">
+                        <Check className="w-3 h-3 text-teal-600" strokeWidth={3} />
+                      </span>
+                      <span className="flex-1 flex items-baseline justify-between gap-3 text-sm min-w-0">
+                        <span className="text-slate-500 flex-shrink-0">{row.label}</span>
+                        <span className="font-semibold text-slate-900 text-right truncate">{row.value}</span>
+                      </span>
                     </div>
                   ))}
                 </div>
