@@ -364,11 +364,6 @@ export default function ConversationalCurated({
                     (no cropping/zooming into it), so a non-16:9 image just letterboxes within this
                     fixed rectangle rather than getting cut off or stretched. */}
                 <img src={cardPhoto} alt={productName} className="w-full h-full object-contain" />
-                {uploadedImage && (
-                  <span className="absolute top-2 left-2 text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                    Your reference photo
-                  </span>
-                )}
                 <label className="absolute bottom-2 right-2 flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-white/95 border border-slate-200 rounded-full px-2.5 py-1 cursor-pointer shadow-sm hover:border-teal-300 hover:text-teal-700 transition-colors">
                   <Upload className="w-3 h-3" />
                   {uploadedImage ? 'Replace' : 'Add your photo'}
