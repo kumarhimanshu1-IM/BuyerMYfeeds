@@ -604,8 +604,12 @@ const [localOnly, setLocalOnly] = useState(false);
   // resolved mcat, city, quantity and selected specs to the windmill API,
   // then polls on a 5s/10s/20s... backoff (stopping on `completed: true`)
   // and renders whatever ranked sellers came back — no more static demo data.
-  async function handleFindBestMatch() {
-    if (!hasActiveFilters) {
+  // The AI conversational landing screen allows Find Best Match even with nothing
+  // answered (landing there at all is enough intent to search) -- the refine-panel
+  // and stale-results entry points still require at least one filter, nudging with
+  // a shake instead of silently doing nothing.
+  async function handleFindBestMatch(opts: { requireFilters?: boolean } = { requireFilters: true }) {
+    if (opts.requireFilters && !hasActiveFilters) {
       setFilterShake(true);
       if (shakeTimer.current) clearTimeout(shakeTimer.current);
       shakeTimer.current = setTimeout(() => setFilterShake(false), 600);
@@ -877,7 +881,7 @@ const [localOnly, setLocalOnly] = useState(false);
             </span>
             <button
               type="button"
-              onClick={handleFindBestMatch}
+              onClick={() => handleFindBestMatch()}
               className="flex-shrink-0 flex items-center gap-1.5 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-1.5 shadow-sm transition-colors"
             >
               <Sparkles className="w-3 h-3" />
@@ -1091,7 +1095,7 @@ const [localOnly, setLocalOnly] = useState(false);
               setQuantityUnit={setQuantityUnit}
               quantityUnits={quantityUnits}
               hasActiveFilters={hasActiveFilters}
-              onFindBestMatch={handleFindBestMatch}
+              onFindBestMatch={() => handleFindBestMatch({ requireFilters: false })}
               previewSellers={sellers}
               bestMatchId={bestMatchId}
               priceRequestedIds={priceRequestedIds}
@@ -1158,7 +1162,7 @@ const [localOnly, setLocalOnly] = useState(false);
             {/* Pinned bottom: CTA buttons */}
             <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-slate-200 space-y-2 relative">
               <button
-                onClick={hasActiveFilters ? handleFindBestMatch : () => setCityOpen(false)}
+                onClick={hasActiveFilters ? () => handleFindBestMatch() : () => setCityOpen(false)}
                 disabled={isFinding}
                 className="w-full py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-300 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 overflow-hidden"
               >
@@ -1206,7 +1210,7 @@ const [localOnly, setLocalOnly] = useState(false);
                 localOnly={localOnly}
                 setLocalOnly={setLocalOnly}
                 resultsAreStale={resultsAreStale}
-                onFindBestMatch={handleFindBestMatch}
+                onFindBestMatch={() => handleFindBestMatch()}
                 onOpenFilters={() => setShowFilterOverlay(true)}
               />
             )}
