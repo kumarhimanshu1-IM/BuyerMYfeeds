@@ -342,7 +342,7 @@ export default function ConversationalCurated({
             className={`group relative w-full py-3.5 rounded-2xl text-white font-semibold overflow-hidden transition-all duration-300 flex items-center justify-center gap-1.5 ${
               hasActiveFilters
                 ? `bg-teal-600 shadow-lg shadow-teal-900/25 ring-1 ring-white/15 hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-900/30 hover:-translate-y-0.5 ${allQuestionsDone ? 'animate-[cta-settle-glow_1.8s_ease-out_1]' : ''}`
-                : 'bg-slate-700 hover:bg-slate-800'
+                : 'bg-teal-600 hover:bg-teal-700'
             }`}
           >
             {hasActiveFilters && (
