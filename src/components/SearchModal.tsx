@@ -420,6 +420,7 @@ export default function SearchModal({ query, city, onClose, aiMode = false }: Se
   const [curatedError, setCuratedError] = useState<string | null>(null);
 const [localOnly, setLocalOnly] = useState(false);
   const [selectedCity, setSelectedCity] = useState(city || 'Dharamsala');
+  const landingCityRef = useRef<HTMLDivElement>(null);
   const [cityOpen, setCityOpen] = useState(false);
   const [cityQuery, setCityQuery] = useState('');
   const cityInputRef = useRef<HTMLInputElement>(null);
@@ -919,7 +920,7 @@ const [localOnly, setLocalOnly] = useState(false);
         {/* ── Body ── */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative" style={{ minHeight: topPicks.length > 0 ? 'auto' : undefined }}>
           {!hasQuery && bestMatchId === null ? (
-            <div className={`flex-1 flex flex-col overflow-y-auto px-6 py-8 ${cityOpen ? 'md:min-h-[440px]' : ''}`}>
+            <div className="flex-1 flex flex-col overflow-y-auto px-6 py-8">
               <div className="relative flex items-center justify-between mb-4">
                 <p className="hidden md:flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <Sparkles className="w-4 h-4 text-teal-600 flex-shrink-0" />
@@ -994,7 +995,7 @@ const [localOnly, setLocalOnly] = useState(false);
                 {/* City + keyword — rectangular bar mimicking Header.tsx's desktop search bar */}
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-2.5">
                   {/* City — desktop only here; mobile has its own pill in the top row above */}
-                  <div className="relative hidden md:block flex-shrink-0 w-[280px]">
+                  <div ref={landingCityRef} className="relative hidden md:block flex-shrink-0 w-[280px]">
                     <button
                       type="button"
                       onClick={() => setCityOpen(o => !o)}
@@ -1007,7 +1008,10 @@ const [localOnly, setLocalOnly] = useState(false);
                     {cityOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setCityOpen(false)} />
-                        <div className="absolute left-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-lg shadow-lg z-20 overflow-hidden text-left">
+                        <div
+                          // fixed (not absolute) so the modal's overflow clipping can't cut the list off
+                          style={(() => { const r = landingCityRef.current?.getBoundingClientRect(); return r ? { top: r.bottom + 8, left: r.left } : undefined; })()}
+                          className="fixed w-52 bg-white border border-slate-200 rounded-lg shadow-lg z-20 overflow-hidden text-left">
                           <div className="p-2 border-b border-slate-100 flex items-center gap-1.5">
                             <input
                               type="text"
