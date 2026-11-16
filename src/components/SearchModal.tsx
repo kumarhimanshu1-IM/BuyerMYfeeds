@@ -281,7 +281,7 @@ function extractCityBuyers6m(s: CuratedSeller): number | null {
   }
   const raw =
     (breakdown && typeof breakdown === 'object'
-      ? (breakdown as Record<string, unknown>).bl_mcat_city_6m
+      ? ((breakdown as Record<string, unknown>).bl_city ?? (breakdown as Record<string, unknown>).bl_mcat_city_6m)
       : undefined) ?? s.bl_mcat_city_6m;
   if (typeof raw === 'number' && !Number.isNaN(raw)) return raw;
   if (typeof raw === 'string' && raw.trim() !== '' && !Number.isNaN(Number(raw))) return Number(raw);
