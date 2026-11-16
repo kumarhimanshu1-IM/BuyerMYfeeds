@@ -919,7 +919,7 @@ const [localOnly, setLocalOnly] = useState(false);
         {/* ── Body ── */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative" style={{ minHeight: topPicks.length > 0 ? 'auto' : undefined }}>
           {!hasQuery && bestMatchId === null ? (
-            <div className="flex-1 flex flex-col overflow-y-auto px-6 py-8">
+            <div className={`flex-1 flex flex-col overflow-y-auto px-6 py-8 ${cityOpen ? 'md:min-h-[440px]' : ''}`}>
               <div className="relative flex items-center justify-between mb-4">
                 <p className="hidden md:flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <Sparkles className="w-4 h-4 text-teal-600 flex-shrink-0" />
