@@ -3,9 +3,10 @@ import {
   X, MapPin, ChevronDown, ChevronUp, Heart, Star, Sparkles, ArrowLeft,
   ShieldCheck, ShieldQuestion, ChevronLeft, ChevronRight, Loader2, Check, User, Send,
   Phone, SearchX, Search, SlidersHorizontal, Trophy, Info, Clock, TrendingUp,
-  ThumbsUp, ThumbsDown,
+  ThumbsUp, ThumbsDown, Pencil,
 } from 'lucide-react';
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
+import ConversationalCurated from './ConversationalCurated';
 import { fetchMcatId } from '../utils/mcat';
 import { fetchSpecs } from '../utils/specs';
 import {
@@ -25,14 +26,14 @@ interface SearchModalProps {
 }
 
 // One product a seller lists under the buyer's category — the card scrolls through these.
-interface SellerProduct {
+export interface SellerProduct {
   name: string;
   price: string;
   priceUnit: string;
   image: string;
 }
 
-interface SellerCard {
+export interface SellerCard {
   id: number;
   name: string;
   city: string;
@@ -217,20 +218,23 @@ function formatMatchHighlight(text: string): string | null {
 function mapSpecGroupsToFilterSections(
   groups: Awaited<ReturnType<typeof fetchSpecs>>
 ): { sections: FilterSection[]; unitOptions: string[] } {
-  const quantitySection: FilterSection = {
-    id: 'quantity',
-    label: 'Quantity',
-    type: 'quantity',
-    singleSelect: true,
-    options: [],
-  };
   // A "Unit"/"Quantity Unit" spec group is the same thing the quantity field's
   // own unit chips already ask for — fold its options into that one control
   // instead of showing it again as a separate spec section below.
   const isUnitGroup = (label: string) => /unit/i.test(label.trim());
   const unitGroup = groups.find(g => g.options.length > 0 && isUnitGroup(g.label));
+
+  // Only ask for quantity when the ISQ response itself includes a quantity spec --
+  // this used to be injected unconditionally, asking buyers for a quantity even on
+  // mcats whose ISQ panel never asked for one.
+  const isQuantityGroup = (label: string) => /quantity/i.test(label.trim()) && !isUnitGroup(label);
+  const quantityGroup = groups.find(g => isQuantityGroup(g.label));
+  const quantitySection: FilterSection | null = quantityGroup
+    ? { id: 'quantity', label: 'Quantity', type: 'quantity', singleSelect: true, options: [] }
+    : null;
+
   const pillSections: FilterSection[] = groups
-    .filter(g => g.options.length > 0 && !isUnitGroup(g.label))
+    .filter(g => g.options.length > 0 && !isUnitGroup(g.label) && !isQuantityGroup(g.label))
     .map(g => ({
       id: g.id,
       label: g.label,
@@ -239,7 +243,7 @@ function mapSpecGroupsToFilterSections(
       options: g.options.map(o => o.label),
     }));
   return {
-    sections: [quantitySection, ...pillSections],
+    sections: quantitySection ? [quantitySection, ...pillSections] : pillSections,
     unitOptions: unitGroup ? unitGroup.options.map(o => o.label) : QUANTITY_UNITS,
   };
 }
@@ -392,7 +396,7 @@ const ALL_GROUP_IDS = DEFAULT_FILTER_SECTIONS.map(s => s.id);
 // by category rather than typing a precise product name.
 const RECENT_SEARCHES = ['Packaging Machine', 'LED Lights'];
 
-export default function SearchModal({ query, city, onClose }: SearchModalProps) {
+export default function SearchModal({ query, city, onClose, aiMode = false }: SearchModalProps) {
   // Editable on screen 1 — lets the buyer type a product/service name here when
   // the modal was opened with no query (e.g. from the Advanced Search action).
   const [searchQuery, setSearchQuery] = useState(query);
@@ -439,6 +443,21 @@ const [localOnly, setLocalOnly] = useState(false);
   const hasQuery = submittedQuery.trim().length > 0;
   const runSearch = (term: string) => { setSearchQuery(term); setSubmittedQuery(term); };
   const handleSubmitSearch = () => runSearch(searchQuery);
+
+  // Inline query editing on the AI landing screen's header -- replaces the back arrow
+  // there (going "back" doesn't make sense mid-conversation); a pencil next to the
+  // product name lets the buyer retype it in place instead.
+  const [editingQueryInline, setEditingQueryInline] = useState(false);
+  const [queryDraft, setQueryDraft] = useState(submittedQuery);
+  function startEditingQueryInline() {
+    setQueryDraft(submittedQuery);
+    setEditingQueryInline(true);
+  }
+  function commitQueryDraft() {
+    const trimmed = queryDraft.trim();
+    if (trimmed && trimmed !== submittedQuery) runSearch(trimmed);
+    setEditingQueryInline(false);
+  }
   const resultsAreStale = bestMatchId !== null && (
     activeFilters.length !== matchedFilters.length ||
     activeFilters.some(f => !matchedFilters.includes(f)) ||
@@ -478,6 +497,11 @@ const [localOnly, setLocalOnly] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const trimmed = submittedQuery.trim();
+    // Each new search query starts with a clean slate — stale picks from a previous
+    // query (different mcat, possibly unrelated/coincidentally-matching option text)
+    // must not show up pre-checked on this one's questions.
+    setActiveFilters([]);
+    setQuantityValue('');
     if (!trimmed) {
       setSpecSections(DEFAULT_FILTER_SECTIONS);
       setQuantityUnits(QUANTITY_UNITS);
@@ -580,8 +604,12 @@ const [localOnly, setLocalOnly] = useState(false);
   // resolved mcat, city, quantity and selected specs to the windmill API,
   // then polls on a 5s/10s/20s... backoff (stopping on `completed: true`)
   // and renders whatever ranked sellers came back — no more static demo data.
-  async function handleFindBestMatch() {
-    if (!hasActiveFilters) {
+  // The AI conversational landing screen allows Find Best Match even with nothing
+  // answered (landing there at all is enough intent to search) -- the refine-panel
+  // and stale-results entry points still require at least one filter, nudging with
+  // a shake instead of silently doing nothing.
+  async function handleFindBestMatch(opts: { requireFilters?: boolean } = { requireFilters: true }) {
+    if (opts.requireFilters && !hasActiveFilters) {
       setFilterShake(true);
       if (shakeTimer.current) clearTimeout(shakeTimer.current);
       shakeTimer.current = setTimeout(() => setFilterShake(false), 600);
@@ -734,6 +762,8 @@ const [localOnly, setLocalOnly] = useState(false);
             ? 'max-w-none md:max-w-[820px] md:h-auto'
             : topPicks.length > 0
             ? 'max-w-none md:max-w-[1080px] md:h-auto md:max-h-[calc(100vh-24px)]'
+            : aiMode
+            ? 'max-w-none md:max-w-[880px] md:h-[92vh] md:max-h-[calc(100vh-24px)]'
             : 'max-w-none md:max-w-[1000px] md:h-[92vh] md:max-h-[calc(100vh-24px)]'
         }`}
         onClick={e => e.stopPropagation()}
@@ -742,7 +772,7 @@ const [localOnly, setLocalOnly] = useState(false);
         {(hasQuery || bestMatchId !== null) && (
         <div className="flex-shrink-0 flex flex-col gap-0 px-4 pt-2.5 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3 pb-2.5">
-            {(bestMatchId !== null || hasQuery) && (
+            {(bestMatchId !== null || hasQuery) && !(aiMode && topPicks.length === 0 && bestMatchId === null) && (
               <button
                 type="button"
                 onClick={bestMatchId === null ? handleBackToQuery : topPicks.length > 0 ? handleBackToQuery : handleBackToSearch}
@@ -754,7 +784,48 @@ const [localOnly, setLocalOnly] = useState(false);
               </button>
             )}
             <div className="flex-1 min-w-0 overflow-hidden">
-              {bestMatchId === null && hasQuery && (
+              {/* AI landing screen: no back arrow (doesn't make sense mid-conversation) --
+                  instead the product name is editable in place via a pencil affordance. */}
+              {aiMode && topPicks.length === 0 && bestMatchId === null && hasQuery && (
+                editingQueryInline ? (
+                  // Ask AI stays as a labelled segment (not just an icon -- that was the
+                  // charm worth keeping), but flush-attached to the input inside one shared
+                  // pill border instead of sitting beside it as a separate, offset button.
+                  <div className="flex items-center h-7 w-72 rounded-md border border-teal-400 bg-white overflow-hidden focus-within:ring-1 focus-within:ring-teal-200">
+                    <input
+                      autoFocus
+                      value={queryDraft}
+                      onChange={e => setQueryDraft(e.target.value)}
+                      onBlur={commitQueryDraft}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') commitQueryDraft();
+                        if (e.key === 'Escape') setEditingQueryInline(false);
+                      }}
+                      className="flex-1 min-w-0 h-full text-sm font-bold text-slate-900 pl-2.5 pr-1.5 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={commitQueryDraft}
+                      className="flex-shrink-0 flex items-center gap-1 h-full pl-2.5 pr-3 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-xs font-bold transition-colors"
+                    >
+                      <Sparkles className="w-3 h-3 text-fuchsia-400 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
+                      Ask AI
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startEditingQueryInline}
+                    className="group flex items-center gap-1.5 min-w-0 max-w-full"
+                    title="Tap to edit"
+                  >
+                    <span className="text-sm font-bold text-slate-900 truncate capitalize">{submittedQuery}</span>
+                    <Pencil className="w-3 h-3 flex-shrink-0 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </button>
+                )
+              )}
+              {!(aiMode && topPicks.length === 0 && bestMatchId === null) && bestMatchId === null && hasQuery && (
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate capitalize">
                     {submittedQuery}
@@ -810,7 +881,7 @@ const [localOnly, setLocalOnly] = useState(false);
             </span>
             <button
               type="button"
-              onClick={handleFindBestMatch}
+              onClick={() => handleFindBestMatch()}
               className="flex-shrink-0 flex items-center gap-1.5 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-1.5 shadow-sm transition-colors"
             >
               <Sparkles className="w-3 h-3" />
@@ -1005,6 +1076,34 @@ const [localOnly, setLocalOnly] = useState(false);
               activeFilters={activeFilters}
             />
           )}
+          {aiMode && topPicks.length === 0 ? (
+            // Keyed by submittedQuery -- editing the requirement name (via the header
+            // pencil) remounts this fresh, so the conversation restarts from question 1
+            // instead of continuing wherever stepIndex happened to be. The remount also
+            // replays this wrapper's fade-in, giving the reset a visible transition
+            // instead of an abrupt jump.
+            <div key={submittedQuery} className="flex-1 flex min-w-0 animate-loader-fade-in" style={{ height: '100%' }}>
+            <ConversationalCurated
+              productName={submittedQuery}
+              specSections={specSections}
+              specsLoading={specsLoading}
+              activeFilters={activeFilters}
+              toggleFilter={toggleFilter}
+              quantityValue={quantityValue}
+              setQuantityValue={setQuantityValue}
+              quantityUnit={quantityUnit}
+              setQuantityUnit={setQuantityUnit}
+              quantityUnits={quantityUnits}
+              hasActiveFilters={hasActiveFilters}
+              onFindBestMatch={() => handleFindBestMatch({ requireFilters: false })}
+              previewSellers={sellers}
+              bestMatchId={bestMatchId}
+              priceRequestedIds={priceRequestedIds}
+              setPriceRequestedIds={setPriceRequestedIds}
+            />
+            </div>
+          ) : (
+            <>
           {/* ── Left Filter Panel — full width on msite, fixed rail on desktop ── */}
           {topPicks.length === 0 && <div
             className="flex-shrink-0 flex flex-col overflow-hidden w-full md:w-[300px] border-slate-200 md:border-r bg-white md:bg-[#fafafa]"
@@ -1029,9 +1128,19 @@ const [localOnly, setLocalOnly] = useState(false);
               <div className="flex-shrink-0 mx-3 mb-1 border-t border-slate-200" />
             </div>
 
-            {/* Desktop — the header just holds the product name; this heading gives filters their own context */}
-            <p className="hidden md:block flex-shrink-0 mx-3 mt-3 mb-1 px-0.5 text-xs font-semibold text-slate-700">
-              Refine your requirement
+            {/* Desktop — the header just holds the product name; this heading gives filters
+                their own context. When the search was launched via Ask AI and no filters are
+                picked yet, the heading itself (not a separate block) carries the nudge toward
+                Find Best Match — same row, same height, no extra scroll or layout shift. */}
+            <p className="hidden md:flex flex-shrink-0 items-center gap-1 mx-3 mt-3 mb-1 px-0.5 text-xs font-semibold text-slate-700">
+              {aiMode && !hasActiveFilters ? (
+                <>
+                  <Sparkles className="w-3 h-3 text-fuchsia-500 flex-shrink-0" />
+                  Pick specs for your AI match
+                </>
+              ) : (
+                'Refine your requirement'
+              )}
             </p>
 
             <SpecFilterList
@@ -1053,7 +1162,7 @@ const [localOnly, setLocalOnly] = useState(false);
             {/* Pinned bottom: CTA buttons */}
             <div className="flex-shrink-0 px-3 pb-3 pt-2 border-t border-slate-200 space-y-2 relative">
               <button
-                onClick={hasActiveFilters ? handleFindBestMatch : () => setCityOpen(false)}
+                onClick={hasActiveFilters ? () => handleFindBestMatch() : () => setCityOpen(false)}
                 disabled={isFinding}
                 className="w-full py-2.5 text-white text-sm font-semibold rounded-lg transition-all duration-300 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 overflow-hidden"
               >
@@ -1101,7 +1210,7 @@ const [localOnly, setLocalOnly] = useState(false);
                 localOnly={localOnly}
                 setLocalOnly={setLocalOnly}
                 resultsAreStale={resultsAreStale}
-                onFindBestMatch={handleFindBestMatch}
+                onFindBestMatch={() => handleFindBestMatch()}
                 onOpenFilters={() => setShowFilterOverlay(true)}
               />
             )}
@@ -1174,6 +1283,8 @@ const [localOnly, setLocalOnly] = useState(false);
             ))}
 
           </div>
+            </>
+          )}
             </>
           )}
         </div>
@@ -2280,16 +2391,25 @@ function ResultsCarousel({
   );
 }
 
-interface FinalResultCardProps {
+export interface FinalResultCardProps {
   seller: SellerCard;
   isBestMatch: boolean;
   priceRequested: boolean;
   onAskPrice: () => void;
   ribbon?: string;
   ribbonTone?: 'amber' | 'teal' | 'slate';
+  // Forces the msite row layout (fixed thumbnail + info beside it) regardless of
+  // viewport width — used when this card renders inside a narrower rail (e.g. the
+  // Conversational Curated widget's results panel) where the desktop vertical
+  // card wouldn't fit well even though the viewport itself is desktop-sized.
+  compact?: boolean;
+  // Overrides the desktop photo's aspect-square height with a fixed px value —
+  // used when the card sits in a narrow column where a full square photo makes
+  // the whole card look too tall relative to its width. Ignored when compact.
+  photoHeight?: number;
 }
 
-function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal' }: FinalResultCardProps) {
+export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false, photoHeight }: FinalResultCardProps) {
   const [ctaStage, setCtaStage] = useState<CtaStage>('idle');
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -2343,9 +2463,14 @@ function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTon
   }
 
   return (
-    <div className="flex flex-row md:flex-col gap-3 md:gap-0 rounded-xl border border-slate-200 bg-white overflow-hidden p-3 md:p-0">
-      {/* Photo — fixed thumbnail on msite, full-width square on desktop */}
-      <div className="relative w-28 h-28 md:w-full md:h-auto md:aspect-square overflow-hidden bg-slate-100 rounded-lg md:rounded-none flex-shrink-0">
+    <div className={`flex gap-3 rounded-xl border border-slate-200 bg-white overflow-hidden p-3 ${compact ? 'flex-row' : 'flex-row md:flex-col md:gap-0 md:p-0'}`}>
+      {/* Photo — fixed thumbnail on msite, full-width square on desktop (unless compact forces the msite layout) */}
+      <div
+        className={`relative overflow-hidden bg-slate-100 flex-shrink-0 ${
+          compact ? 'w-28 h-28 rounded-lg' : `w-28 h-28 md:w-full rounded-lg md:rounded-none ${photoHeight ? '' : 'md:h-auto md:aspect-square'}`
+        }`}
+        style={!compact && photoHeight ? { height: photoHeight } : undefined}
+      >
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
@@ -2409,7 +2534,7 @@ function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTon
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-1.5 flex-1 min-w-0 md:p-3">
+      <div className={`flex flex-col gap-1.5 flex-1 min-w-0 ${compact ? '' : 'md:p-3'}`}>
         {/* Active product — follows the scroller above */}
         <div className="flex flex-col items-start gap-0.5 min-w-0 w-full">
           {activeItem.name && (
