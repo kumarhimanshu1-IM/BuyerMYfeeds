@@ -15,6 +15,8 @@ interface DesktopSearchSuggestProps {
   query: string;
   onSelect: (label: string) => void;
   onAskAi: (query: string) => void;
+  // Hide the per-row sparkle + "Ask AI" row (used where every selection already opens Ask AI).
+  hideAskAi?: boolean;
 }
 
 // Header search autosuggest dropdown (desktop) — matches the real product's
@@ -24,7 +26,7 @@ interface DesktopSearchSuggestProps {
 // the AI entry point, that takes the buyer straight to the Advance Search
 // results/refine screen (not the blank "what are you looking for" screen)
 // with their typed keyword already applied.
-export default function DesktopSearchSuggest({ query, onSelect, onAskAi }: DesktopSearchSuggestProps) {
+export default function DesktopSearchSuggest({ query, onSelect, onAskAi, hideAskAi = false }: DesktopSearchSuggestProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const trimmed = query.trim();
 
@@ -65,20 +67,23 @@ export default function DesktopSearchSuggest({ query, onSelect, onAskAi }: Deskt
             <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <span className="text-[15px] font-bold text-[#2e3192] truncate">{label}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => onAskAi(label)}
-            aria-label={`Ask AI to find best match for ${label}`}
-            title="Ask AI"
-            className="flex-shrink-0 flex w-11 items-center justify-center text-fuchsia-500 hover:bg-fuchsia-50 transition-colors"
-          >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-fuchsia-50">
-              <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
-            </span>
-          </button>
+          {!hideAskAi && (
+            <button
+              type="button"
+              onClick={() => onAskAi(label)}
+              aria-label={`Ask AI to find best match for ${label}`}
+              title="Ask AI"
+              className="flex-shrink-0 flex w-11 items-center justify-center text-fuchsia-500 hover:bg-fuchsia-50 transition-colors"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-fuchsia-50">
+                <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
+              </span>
+            </button>
+          )}
         </div>
       ))}
 
+      {!hideAskAi && (
       <button
         type="button"
         onClick={() => onAskAi(trimmed)}
@@ -92,6 +97,7 @@ export default function DesktopSearchSuggest({ query, onSelect, onAskAi }: Deskt
           New
         </span>
       </button>
+      )}
     </div>
   );
 }

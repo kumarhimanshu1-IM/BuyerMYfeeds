@@ -405,7 +405,11 @@ const ALL_GROUP_IDS = DEFAULT_FILTER_SECTIONS.map(s => s.id);
 // by category rather than typing a precise product name.
 const RECENT_SEARCHES = ['Packaging Machine', 'LED Lights'];
 
-export default function SearchModal({ query, city, onClose, aiMode = false }: SearchModalProps) {
+export default function SearchModal({ query, city, onClose, aiMode: aiModeProp = false }: SearchModalProps) {
+  // The blank "What are you looking for?" screen always leads into the Ask AI chat,
+  // whichever entry point opened the modal.
+  const [aiForced, setAiForced] = useState(false);
+  const aiMode = aiModeProp || aiForced;
   // Editable on screen 1 — lets the buyer type a product/service name here when
   // the modal was opened with no query (e.g. from the Advanced Search action).
   const [searchQuery, setSearchQuery] = useState(query);
@@ -453,7 +457,8 @@ const [localOnly, setLocalOnly] = useState(false);
   const hasActiveFilters = activeFilters.length > 0;
   const hasQuery = submittedQuery.trim().length > 0;
   const runSearch = (term: string) => { setSearchQuery(term); setSubmittedQuery(term); };
-  const handleSubmitSearch = () => runSearch(searchQuery);
+  const runAiSearch = (term: string) => { setAiForced(true); runSearch(term); };
+  const handleSubmitSearch = () => runAiSearch(searchQuery);
 
   // Inline query editing on the AI landing screen's header -- replaces the back arrow
   // there (going "back" doesn't make sense mid-conversation); a pencil next to the
@@ -1083,8 +1088,9 @@ const [localOnly, setLocalOnly] = useState(false);
                       >
                         <DesktopSearchSuggest
                           query={searchQuery}
-                          onSelect={runSearch}
-                          onAskAi={runSearch}
+                          onSelect={runAiSearch}
+                          onAskAi={runAiSearch}
+                          hideAskAi
                         />
                       </div>
                     )}
@@ -1098,7 +1104,7 @@ const [localOnly, setLocalOnly] = useState(false);
                     <span key={term}>
                       <button
                         type="button"
-                        onClick={() => runSearch(term)}
+                        onClick={() => runAiSearch(term)}
                         className="text-slate-600 hover:text-teal-700 transition-colors"
                       >
                         {term}
