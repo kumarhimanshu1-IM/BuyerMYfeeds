@@ -104,6 +104,28 @@ export default function ConversationalCurated({
   // nothing answered -- landing here at all is enough intent to search.
   const allQuestionsDone = total > 0 && stepIndex >= total;
 
+  // Auto-run Find Best Match once the last question is answered/skipped, so the buyer
+  // doesn't have to click it separately. Only when at least one spec was answered (an
+  // all-skipped panel stays a manual, broad "Search"). The short delay lets the final
+  // answer land visibly; tapping an earlier answer to edit it flips allQuestionsDone
+  // back to false, which cancels the pending run and re-arms it for the next completion.
+  const AUTO_SEARCH_DELAY_MS = 1500;
+  const onFindBestMatchRef = useRef(onFindBestMatch);
+  onFindBestMatchRef.current = onFindBestMatch;
+  const autoFiredRef = useRef(false);
+  useEffect(() => {
+    if (!allQuestionsDone) {
+      autoFiredRef.current = false;
+      return;
+    }
+    if (!hasActiveFilters || autoFiredRef.current) return;
+    const timer = setTimeout(() => {
+      autoFiredRef.current = true;
+      onFindBestMatchRef.current();
+    }, AUTO_SEARCH_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [allQuestionsDone, hasActiveFilters]);
+
   // Keeps the live question in view as the chat grows, while the Find Best Match
   // footer below stays put — same feel as a real chat. Scrolls the live question
   // itself into view (not just the container's bottom) so that editing an earlier
@@ -323,7 +345,7 @@ export default function ConversationalCurated({
               </span>
               <p className="text-sm font-semibold text-slate-900 bg-slate-50 rounded-2xl rounded-tl-sm px-4 py-2.5">
                 {hasActiveFilters
-                  ? 'Your best matching suppliers are just a tap away.'
+                  ? 'Finding your best matching suppliers…'
                   : "Sharper matches are just one answer away — or search right now if you'd rather."}
               </p>
             </div>
