@@ -114,7 +114,7 @@ export default function MobileSearchSuggest({ query, onQueryChange, onClose, onS
           <SuggestRow key={`recent-${label}`} icon={<Clock className="w-4 h-4 text-slate-400" />} label={label} onSelect={() => onSubmit(label)} onFill={() => onQueryChange(label)} />
         ))}
         {listToShow.map(label => (
-          <SuggestRow key={`sugg-${label}`} icon={<Search className="w-4 h-4 text-slate-400" />} label={label} onSelect={() => onSubmit(label)} onFill={() => onQueryChange(label)} />
+          <SuggestRow key={`sugg-${label}`} icon={<Search className="w-4 h-4 text-slate-400" />} label={label} onSelect={() => onSubmit(label)} onFill={() => onQueryChange(label)} onAskAi={() => onSubmit(label, true)} />
         ))}
 
         <div className="px-4 pt-3 pb-4">
@@ -131,13 +131,26 @@ export default function MobileSearchSuggest({ query, onQueryChange, onClose, onS
   );
 }
 
-function SuggestRow({ icon, label, onSelect, onFill }: { icon: React.ReactNode; label: string; onSelect: () => void; onFill: () => void }) {
+function SuggestRow({ icon, label, onSelect, onFill, onAskAi }: { icon: React.ReactNode; label: string; onSelect: () => void; onFill: () => void; onAskAi?: () => void }) {
   return (
     <div className="w-full flex items-center gap-3 px-4 py-3 border-b border-slate-100">
       <button type="button" onClick={onSelect} className="flex-shrink-0">{icon}</button>
       <button type="button" onClick={onSelect} className="flex-1 min-w-0 text-left text-sm font-semibold text-slate-800 truncate">
         {label}
       </button>
+      {onAskAi && (
+        <button
+          type="button"
+          onClick={onAskAi}
+          aria-label={`Ask AI to find best match for ${label}`}
+          title="Ask AI"
+          className="flex-shrink-0 -my-3 flex h-11 w-11 items-center justify-center text-fuchsia-500 active:bg-fuchsia-50"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-fuchsia-50">
+            <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
+          </span>
+        </button>
+      )}
       <button type="button" onClick={onFill} aria-label={`Fill search with ${label}`} className="flex-shrink-0 p-1 text-slate-400">
         <ArrowUpLeft className="w-4 h-4" />
       </button>

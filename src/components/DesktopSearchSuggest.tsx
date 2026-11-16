@@ -56,15 +56,27 @@ export default function DesktopSearchSuggest({ query, onSelect, onAskAi }: Deskt
       onMouseDown={e => e.preventDefault()}
     >
       {suggestions.map(label => (
-        <button
-          key={label}
-          type="button"
-          onClick={() => onSelect(label)}
-          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-slate-100"
-        >
-          <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          <span className="text-[15px] font-bold text-[#2e3192] truncate">{label}</span>
-        </button>
+        <div key={label} className="flex items-stretch border-b border-slate-100 hover:bg-slate-50 transition-colors">
+          <button
+            type="button"
+            onClick={() => onSelect(label)}
+            className="flex-1 min-w-0 flex items-center gap-3 pl-4 pr-2 py-3 text-left"
+          >
+            <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <span className="text-[15px] font-bold text-[#2e3192] truncate">{label}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onAskAi(label)}
+            aria-label={`Ask AI to find best match for ${label}`}
+            title="Ask AI"
+            className="flex-shrink-0 flex w-11 items-center justify-center text-fuchsia-500 hover:bg-fuchsia-50 transition-colors"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-fuchsia-50">
+              <Sparkles className="w-4 h-4 animate-[sparkle-pulse_1.6s_ease-in-out_infinite]" />
+            </span>
+          </button>
+        </div>
       ))}
 
       <button
