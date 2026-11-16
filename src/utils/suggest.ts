@@ -71,3 +71,37 @@ function itemToLabel(item: unknown): string | null {
   }
   return null;
 }
+
+// Resolves a city name to IndiaMART's location_id via the location suggester
+// (response shape: { location: [{ value, label, data: { location_id, state, flname } }] }).
+// Cached per name; returns null when the lookup fails so callers can fall back.
+const cityIdCache = new Map<string, string>();
+export async function fetchCityId(city: string, signal?: AbortSignal): Promise<string | null> {
+  const name = city.trim();
+  if (!name) return null;
+  const key = name.toLowerCase();
+  const cached = cityIdCache.get(key);
+  if (cached) return cached;
+
+  const url =
+    'https://suggest.imimg.com/suggest/suggest.php' +
+    `?q=${encodeURIComponent(name)}&tag=suggestions&limit=40&type=location` +
+    '&fields=location_id,state%2Cid%2Cstateid%2Cflname%2Calias' +
+    '&display_fields=value%2C%3Dstate&display_separator=%2C+&match=exact&catid=0&mcatid=0&v=412';
+
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return null;
+    const data = JSON.parse(await res.text()) as {
+      location?: { value?: string; label?: string; data?: { location_id?: string | number } }[];
+    };
+    const list = data.location ?? [];
+    const hit = list.find(l => (l.value ?? l.label ?? '').toLowerCase() === key) ?? list[0];
+    const id = hit?.data?.location_id;
+    if (id === undefined || id === null || id === '') return null;
+    cityIdCache.set(key, String(id));
+    return String(id);
+  } catch {
+    return null;
+  }
+}

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
 import ConversationalCurated from './ConversationalCurated';
+import { fetchCityId } from '../utils/suggest';
 import { fetchMcatId } from '../utils/mcat';
 import { fetchSpecs } from '../utils/specs';
 import {
@@ -650,6 +651,9 @@ const [localOnly, setLocalOnly] = useState(false);
       setEvalStage(stageIdx);
     }, 200);
 
+    // Real location_id for the selected city (was hardcoded '1' / '70751' = Noida).
+    const cityLocationId = await fetchCityId(cityForThisRun);
+
     let jobId: string | null = null;
     try {
       jobId = await createCuratedSearchJob({
@@ -657,9 +661,9 @@ const [localOnly, setLocalOnly] = useState(false);
         keyword: submittedQuery,
         mcat_id: mcatId,
         mcat_name: submittedQuery,
-        buyer_city_id: '1',
+        buyer_city_id: cityLocationId ?? '1',
         buyer_city: cityForThisRun,
-        city_id: '70751',
+        city_id: cityLocationId ?? '70751',
         city_match: 'exact',
         quantity: quantityValue,
         quantity_unit: quantityUnit,
