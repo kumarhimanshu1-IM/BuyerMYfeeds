@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
 import ConversationalCurated from './ConversationalCurated';
+import DesktopSearchSuggest from './DesktopSearchSuggest';
 import { fetchCityId } from '../utils/suggest';
 import { fetchMcatId } from '../utils/mcat';
 import { fetchSpecs } from '../utils/specs';
@@ -421,6 +422,7 @@ export default function SearchModal({ query, city, onClose, aiMode = false }: Se
 const [localOnly, setLocalOnly] = useState(false);
   const [selectedCity, setSelectedCity] = useState(city || 'Dharamsala');
   const landingCityRef = useRef<HTMLDivElement>(null);
+  const landingSearchRef = useRef<HTMLDivElement>(null);
   const [cityOpen, setCityOpen] = useState(false);
   const [cityQuery, setCityQuery] = useState('');
   const cityInputRef = useRef<HTMLInputElement>(null);
@@ -1052,7 +1054,7 @@ const [localOnly, setLocalOnly] = useState(false);
                       </>
                     )}
                   </div>
-                  <div className="relative flex-1 min-w-0">
+                  <div ref={landingSearchRef} className="relative flex-1 min-w-0">
                     <div className="relative z-10 flex items-center bg-white rounded-lg h-[38px] pl-3 overflow-hidden transition-all duration-300 border border-slate-200">
                       <input
                         type="text"
@@ -1072,6 +1074,20 @@ const [localOnly, setLocalOnly] = useState(false);
                         <Search className="w-4 h-4" />
                       </button>
                     </div>
+                    {/* Suggestions — zero-height fixed anchor under the input so the modal's
+                        overflow clipping can't cut the list off (same trick as the city list). */}
+                    {searchQuery.trim() && (
+                      <div
+                        className="hidden md:block fixed h-0 z-30"
+                        style={(() => { const r = landingSearchRef.current?.getBoundingClientRect(); return r ? { top: r.top + 38, left: r.left, width: r.width } : undefined; })()}
+                      >
+                        <DesktopSearchSuggest
+                          query={searchQuery}
+                          onSelect={runSearch}
+                          onAskAi={runSearch}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
