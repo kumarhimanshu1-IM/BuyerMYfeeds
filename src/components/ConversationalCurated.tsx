@@ -31,12 +31,11 @@ interface ConversationalCuratedProps {
   setPriceRequestedIds: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
-// Plain, uniform "Enter <label>" phrasing for every question -- no per-id copy
-// needed, so a new/unknown mcat's specs work the same way without anything
-// added here, and it stays consistent with the quantity field's own
-// "Enter quantity here" placeholder.
+// Plain, uniform "<label>?" phrasing for every question (e.g. "Quantity?",
+// "Storage Capacity?") -- no per-id copy needed, so a new/unknown mcat's specs
+// work the same way without anything added here.
 function questionFor(section: FilterSectionLike): string {
-  return `Enter ${section.label}`;
+  return `${section.label}?`;
 }
 
 // Contextual label for the "add an answer" affordance on a skipped question --
