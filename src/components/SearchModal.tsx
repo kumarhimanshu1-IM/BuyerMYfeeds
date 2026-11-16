@@ -200,6 +200,13 @@ function highlightIcon(text: string) {
   return TrendingUp;
 }
 
+// Nearby Sellers tab ribbon: "Same city" when the seller is in the buyer's city (dist 0),
+// otherwise how far away they are.
+function nearbyRibbonLabel(seller: SellerCard): string {
+  const km = Math.round(seller.distance);
+  return km <= 0 ? 'Same city' : `${km} kms away`;
+}
+
 // "N buyers served in 6m" — below 5 is too thin a signal to show (blank line instead);
 // above 100 is capped and shown as "100+"; the unit is spelled out in full.
 function formatMatchHighlight(text: string): string | null {
@@ -2072,8 +2079,7 @@ function ResultsCarousel({
   function ribbonFor(idx: number): { ribbon?: string; ribbonTone: 'amber' | 'teal' | 'slate' } {
     if (showNearby) {
       const seller = list[carouselPage * CARDS_PER_PAGE + idx];
-      const labels = ['Nearest Seller', 'Nearby Seller', 'Nearby Seller', 'Nearby Seller'];
-      return { ribbon: labels[idx] ?? undefined, ribbonTone: idx === 0 ? 'teal' : 'slate' };
+      return { ribbon: seller ? nearbyRibbonLabel(seller) : undefined, ribbonTone: idx === 0 ? 'teal' : 'slate' };
     }
     if (idx === 0 && carouselPage === 0) return { ribbon: 'Best Overall', ribbonTone: 'amber' };
     const seller = list[carouselPage * CARDS_PER_PAGE + idx];
@@ -2226,8 +2232,7 @@ function ResultsCarousel({
           {list.map((seller, idx) => {
             const { ribbon, ribbonTone } = (() => {
               if (showNearby) {
-                const labels = ['Nearest Seller', 'Nearby Seller', 'Nearby Seller', 'Nearby Seller'];
-                return { ribbon: labels[idx] ?? undefined, ribbonTone: (idx === 0 ? 'teal' : 'slate') as 'teal' | 'slate' };
+                return { ribbon: nearbyRibbonLabel(seller), ribbonTone: (idx === 0 ? 'teal' : 'slate') as 'teal' | 'slate' };
               }
               if (idx === 0) return { ribbon: 'Best Overall', ribbonTone: 'amber' as const };
               const sameCityCount = list.filter(s => s.city === seller.city).length;
