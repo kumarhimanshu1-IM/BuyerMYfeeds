@@ -638,10 +638,14 @@ const [localOnly, setLocalOnly] = useState(false);
     const LOADER_MS = 22200;
     const STAGE_MS = LOADER_MS / EVAL_STAGE_COUNT;
     const loaderStart = Date.now();
+    let reachedStage = 0;
+    let reachedProgress = 4;
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - loaderStart;
-      setProgress(Math.min(94, Math.round((elapsed / LOADER_MS) * 94)));
+      reachedProgress = Math.min(94, Math.round((elapsed / LOADER_MS) * 94));
+      setProgress(reachedProgress);
       const stageIdx = Math.min(EVAL_STAGE_COUNT - 1, Math.floor(elapsed / STAGE_MS));
+      reachedStage = stageIdx;
       setEvalDone(Array.from({ length: stageIdx }, (_, i) => i));
       setEvalStage(stageIdx);
     }, 200);
@@ -708,6 +712,17 @@ const [localOnly, setLocalOnly] = useState(false);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+    // Fast finish: results are in, so play the remaining stages quickly (~1s total)
+    // instead of jumping straight to "done".
+    const FAST_FINISH_MS = 1000;
+    const remainingStages = EVAL_STAGE_COUNT - reachedStage;
+    const stepMs = Math.max(60, Math.floor(FAST_FINISH_MS / Math.max(1, remainingStages)));
+    for (let st = reachedStage + 1; st <= EVAL_STAGE_COUNT; st++) {
+      await new Promise<void>(resolve => setTimeout(resolve, stepMs));
+      setEvalDone(Array.from({ length: st }, (_, i) => i));
+      if (st < EVAL_STAGE_COUNT) setEvalStage(st);
+      setProgress(Math.round(reachedProgress + ((100 - reachedProgress) * (st - reachedStage)) / remainingStages));
     }
     setEvalDone(Array.from({ length: EVAL_STAGE_COUNT }, (_, i) => i));
     setProgress(100);
