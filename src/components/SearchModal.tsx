@@ -775,9 +775,9 @@ const [localOnly, setLocalOnly] = useState(false);
             {(bestMatchId !== null || hasQuery) && !(aiMode && topPicks.length === 0 && bestMatchId === null) && (
               <button
                 type="button"
-                onClick={bestMatchId === null ? handleBackToQuery : topPicks.length > 0 ? handleBackToQuery : handleBackToSearch}
-                aria-label={bestMatchId === null ? 'Back to Search' : topPicks.length > 0 ? 'Back to Search' : 'Back to Refine'}
-                title={bestMatchId === null ? 'Back to Search' : topPicks.length > 0 ? 'Back to Search' : 'Back to Refine'}
+                onClick={bestMatchId === null ? handleBackToQuery : topPicks.length > 0 ? onClose : handleBackToSearch}
+                aria-label={bestMatchId === null ? 'Back to Search' : topPicks.length > 0 ? 'Back to Dashboard' : 'Back to Refine'}
+                title={bestMatchId === null ? 'Back to Search' : topPicks.length > 0 ? 'Back to Dashboard' : 'Back to Refine'}
                 className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition-colors hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
