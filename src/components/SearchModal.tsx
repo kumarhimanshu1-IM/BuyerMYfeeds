@@ -8,6 +8,7 @@ import {
 import FindingBestMatchLoader, { EVAL_STAGE_COUNT } from './FindingBestMatchLoader';
 import ConversationalCurated from './ConversationalCurated';
 import DesktopSearchSuggest from './DesktopSearchSuggest';
+import SellerCardV2 from './SellerCardV2';
 import { fetchCityId } from '../utils/suggest';
 import { fetchMcatId } from '../utils/mcat';
 import { fetchSpecs } from '../utils/specs';
@@ -60,6 +61,8 @@ export interface SellerCard {
   products?: SellerProduct[];
   // Buyers from the buyer's own city this seller served in the last 6 months
   cityBuyers6m?: number;
+  // Title of the seller's primary product (API sellers); shown as "Supplier for" in the v2 card
+  productName?: string;
 }
 
 interface FilterSection {
@@ -341,6 +344,7 @@ function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
         ? [{ name: primaryTitle, price: s.price_formatted ?? 'Ask for price', priceUnit: '', image: primaryImage }, ...extraProducts]
         : undefined,
       cityBuyers6m: cityBuyers ?? undefined,
+      productName: primaryTitle,
       askPrice: !s.price_formatted,
       phone: undefined,
       distance: s.dist_km ?? 0,
@@ -2441,6 +2445,9 @@ function ResultsCarousel({
   );
 }
 
+// ?card=v2 swaps the results cards for the SellerCardV2 variant (for side-by-side trials).
+const USE_CARD_V2 = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('card') === 'v2';
+
 export interface FinalResultCardProps {
   seller: SellerCard;
   isBestMatch: boolean;
@@ -2459,7 +2466,11 @@ export interface FinalResultCardProps {
   photoHeight?: number;
 }
 
-export function FinalResultCard({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false, photoHeight }: FinalResultCardProps) {
+export function FinalResultCard(props: FinalResultCardProps) {
+  return USE_CARD_V2 ? <SellerCardV2 seller={props.seller} ribbon={props.ribbon} ribbonTone={props.ribbonTone} /> : <FinalResultCardV1 {...props} />;
+}
+
+function FinalResultCardV1({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false, photoHeight }: FinalResultCardProps) {
   const [ctaStage, setCtaStage] = useState<CtaStage>('idle');
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
