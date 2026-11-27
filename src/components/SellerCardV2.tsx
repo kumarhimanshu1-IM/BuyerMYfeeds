@@ -111,6 +111,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         price: seller.askPrice ? 'Ask for price' : seller.price,
         priceUnit: seller.priceUnit,
         image: seller.image,
+        url: seller.paidUrl,
       }];
   const idx = Math.min(active, items.length - 1);
   const item = items[idx];
@@ -143,6 +144,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
   const priceNode = hasPrice
     ? <>{item.price}{item.priceUnit ? <span className="text-xs font-semibold text-slate-500">{item.priceUnit}</span> : null}</>
     : <span className="text-sm font-semibold text-slate-500">Ask for price</span>;
+
+  // Product image / name open the product's page (title_url) in a new tab
+  const productLink = (children: React.ReactNode, className = '') => item.url
+    ? <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={item.name} className={className}>{children}</a>
+    : <span className={className}>{children}</span>;
 
   // ‹ 1/10 › pager that sits on the product image, so it is clearly the product that changes
   const pager = items.length > 1 && (
@@ -217,11 +223,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
 
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-50 p-1.5">
           <div className="relative h-14 w-14 flex-shrink-0">
-            <img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />
+            {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
             {pager}
           </div>
           <div className="min-w-0 flex-1 text-left">
-            <p className="truncate text-xs font-semibold text-slate-800">{item.name}</p>
+            <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
             <p className="truncate text-[10px]">
               {view.rows.length === 0 ? ' ' : view.rows.slice(0, 2).map((r, n) => (
                 <span key={r.key} className={r.status === 'match' ? 'font-semibold text-teal-700' : r.status === 'diff' ? 'text-amber-700' : 'text-slate-500'}>
@@ -274,11 +280,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       {/* 2. Catalog glimpse: image + pager left; name, requirement match, specs, price right */}
       <div className="mt-3 flex items-start gap-2.5 rounded-lg bg-slate-50 p-2.5 text-left">
         <div className="relative h-[88px] w-[88px] flex-shrink-0">
-          <img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />
+          {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
           {pager}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 min-h-[30px] text-xs font-semibold leading-snug text-slate-800">{item.name}</p>
+          <p className="line-clamp-2 min-h-[30px] text-xs font-semibold leading-snug text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline underline-offset-2' : '')}</p>
           <p className={`mt-0.5 min-h-[16px] text-[11px] font-semibold ${summaryTone}`}>
             {view.total > 0 && `${view.matched} of ${view.total} ${view.total === 1 ? 'requirement matches' : 'requirements match'}`}
           </p>
