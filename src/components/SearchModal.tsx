@@ -2314,7 +2314,7 @@ function ResultsCarousel({
       </div>
 
       {/* Msite — full list, single column, plain scroll (no pager) */}
-      <div className="md:hidden px-3 pb-3 flex-1 overflow-y-auto scrollbar-hide">
+      <div className={`md:hidden px-3 pb-3 ${USE_CARD_V2 ? 'pt-3' : ''} flex-1 overflow-y-auto scrollbar-hide`}>
         <div className="grid grid-cols-1 gap-3">
           {list.map((seller, idx) => {
             const { ribbon, ribbonTone } = (() => {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp, X } from 'lucide-react';
+import { MapPin, Star, ShieldCheck, Check, Phone, TrendingUp, X } from 'lucide-react';
 import type { SellerCard, SellerProduct } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2). Centred, three tiers, no inner
@@ -150,10 +150,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
   const [copied, setCopied] = useState(false);
   const [priceAsked, setPriceAsked] = useState(false);
   const [active, setActive] = useState(0);
+  // Direction of the last product change; drives the slide-in animation (none until the first change)
+  const [anim, setAnim] = useState<'next' | 'prev' | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const touchX = useRef<number | null>(null);
 
-  const years = Math.round(seller.years);
   const buyersServed = formatBuyersServed(seller.matchHighlight);
   const cityBuyers = seller.cityBuyers6m ?? 0;
 
@@ -197,20 +198,20 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
     ? <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={item.name} className={className}>{children}</a>
     : <span className={className}>{children}</span>;
 
-  // "1/10" chip on the product section: how many products this seller has in the buyer's category
-  const countChip = items.length > 1 && (
-    <span className="absolute -top-2 right-3 rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-sm">
-      {idx + 1}/{items.length}
-    </span>
-  );
+  function select(n: number, direction?: 'next' | 'prev') {
+    if (n === idx) return;
+    setAnim(direction ?? (n > idx ? 'next' : 'prev'));
+    setActive(n);
+  }
+  const animClass = anim === 'next' ? 'v2-slide-next' : anim === 'prev' ? 'v2-slide-prev' : '';
 
-  // Thumbnail strip: up to 4 products at a glance (tap to switch) + a "+N" tile that opens the full
-  // catalog. When a product beyond the first 4 is active it takes the last slot so it stays visible.
-  const VISIBLE = 4;
-  const shownIdx = items.length <= VISIBLE + 1
+  // Thumbnail strip: 3 products at a glance (tap to switch) + a "+N more" tile that opens the full
+  // catalog. When a product beyond the first 3 is active it takes the last slot so it stays visible.
+  const VISIBLE = 3;
+  const shownIdx = items.length <= VISIBLE
     ? items.map((_, n) => n)
-    : idx < VISIBLE ? [0, 1, 2, 3] : [0, 1, 2, idx];
-  const moreCount = items.length > VISIBLE + 1 ? items.length - VISIBLE : 0;
+    : idx < VISIBLE ? [0, 1, 2] : [0, 1, idx];
+  const moreCount = items.length > VISIBLE ? items.length - VISIBLE : 0;
   const thumbs = items.length > 1 && (
     <div className="flex items-center gap-1.5">
       {shownIdx.map(n => (
@@ -220,7 +221,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           title={items[n].name}
           aria-label={`Show ${items[n].name}`}
           aria-current={n === idx}
-          onClick={e => { e.stopPropagation(); setActive(n); }}
+          onClick={e => { e.stopPropagation(); select(n); }}
           className={`h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-white transition-all ${n === idx ? 'ring-2 ring-teal-600' : 'opacity-70 ring-1 ring-slate-200 hover:opacity-100'}`}
         >
           <img src={items[n].image} alt="" className="h-full w-full object-contain" loading="lazy" />
@@ -231,9 +232,9 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           type="button"
           aria-label={`View all ${items.length} products`}
           onClick={e => { e.stopPropagation(); setPanelOpen(true); }}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white text-[11px] font-bold text-teal-700 ring-1 ring-teal-600 hover:bg-teal-50"
+          className="flex h-10 flex-shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-white px-2.5 text-[11px] font-bold text-teal-700 ring-1 ring-teal-600 hover:bg-teal-50"
         >
-          +{moreCount}
+          +{moreCount} more
         </button>
       )}
     </div>
@@ -244,7 +245,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       if (touchX.current == null || items.length < 2) return;
       const dx = e.changedTouches[0].clientX - touchX.current;
       touchX.current = null;
-      if (Math.abs(dx) > 40) setActive((idx + (dx < 0 ? 1 : -1) + items.length) % items.length);
+      if (Math.abs(dx) > 40) select((idx + (dx < 0 ? 1 : -1) + items.length) % items.length, dx < 0 ? 'next' : 'prev');
     },
   };
 
@@ -253,7 +254,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       seller={seller}
       items={items}
       activeIdx={idx}
-      onPick={n => { setActive(n); setPanelOpen(false); }}
+      onPick={n => { select(n); setPanelOpen(false); }}
       onClose={() => setPanelOpen(false)}
     />
   );
@@ -323,13 +324,12 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
 
   if (compact) {
     return (
-      <div className="relative flex flex-col rounded-xl border border-slate-200 bg-white p-2.5 text-center shadow-sm">
+      <div className="relative flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-sm">
         {ribbonEl}
         {nameNode}
         <div className="mt-0.5 flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] text-slate-600">
           <span className="inline-flex min-w-0 items-center gap-0.5"><MapPin className="h-3 w-3 flex-shrink-0" /><span className="max-w-[80px] truncate">{seller.city}</span></span>
           {seller.reviews > 0 && <>{dot}<span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><span className="font-semibold text-slate-700">{seller.rating.toFixed(1)}</span></span></>}
-          {years > 0 && <>{dot}<span className="font-semibold text-slate-700">{years} {years === 1 ? 'yr' : 'yrs'}</span></>}
           {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
         </div>
         {payPill && <div className="mt-1.5 flex justify-center">{payPill}</div>}
@@ -345,25 +345,27 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
               {idx + 1}/{items.length} ›
             </button>
           )}
-          <div className="flex items-start gap-2.5">
-            <div className="h-14 w-14 flex-shrink-0">
-              {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
-            </div>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
-              <div className="mt-1 space-y-1 text-[11px] leading-snug">
-                {specRows.map(r => (
-                  <p key={r.key} className={`truncate ${r.match ? '-mx-1 rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
-                    {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
-                    <span className={r.match ? 'opacity-80' : 'text-slate-400'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
-                  </p>
-                ))}
+          <div className="overflow-hidden">
+            <div key={idx} className={`flex items-stretch gap-3 ${animClass}`}>
+              <div className="min-h-[88px] w-24 flex-shrink-0">
+                {productLink(<img src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
+                <div className="mt-1 space-y-1 text-[11px] leading-snug">
+                  {specRows.map(r => (
+                    <p key={r.key} className={`truncate ${r.match ? '-mx-1 rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
+                      {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
+                      <span className={r.match ? 'opacity-80' : 'text-slate-400'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
+                    </p>
+                  ))}
+                </div>
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
+                  {items.length > 1 && <span className="text-[10px] text-slate-400">Swipe ›</span>}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between gap-2">
-            <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
-            {items.length > 1 && <span className="text-[10px] text-slate-400">Swipe for more ›</span>}
           </div>
         </div>
 
@@ -373,7 +375,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           </p>
         )}
 
-        <div className="mt-2 grid grid-cols-2 gap-2">{bestPrice}{call}</div>
+        <div className="mt-3 grid grid-cols-2 gap-2">{bestPrice}{call}</div>
         {panel}
       </div>
     );
@@ -397,17 +399,17 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
             <span className="text-slate-400">({seller.reviews})</span>
           </span>
         )}
-        {years > 0 && <>{seller.reviews > 0 && dot}<span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-slate-500" /><span className="font-semibold">{years} {years === 1 ? 'yr' : 'yrs'}</span></span></>}
-        {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
+        {seller.hasTrustSEAL && <>{seller.reviews > 0 && dot}<span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
       </div>
       <div className="mt-1.5 flex h-5 justify-center">{payPill}</div>
 
       {/* 2. Catalog glimpse: image left; name + specs right; price and thumbnails below */}
       <div {...swipe} className="relative mt-3.5 rounded-xl bg-slate-100/80 p-3.5 text-left">
-        {countChip}
+        <div className="overflow-hidden">
+        <div key={idx} className={animClass}>
         <div className="flex items-start gap-3">
           <div className="h-[96px] w-[96px] flex-shrink-0">
-            {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-lg bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
+            {productLink(<img src={item.image} alt="" className="h-full w-full rounded-lg bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
           </div>
           <div className="min-w-0 flex-1">
             <p className="line-clamp-2 min-h-[32px] text-xs font-semibold leading-snug text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline underline-offset-2' : '')}</p>
@@ -422,6 +424,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           </div>
         </div>
         <p className="mt-3.5 min-h-[24px] text-base font-bold leading-tight text-teal-700">{priceNode}</p>
+        </div>
+        </div>
         <div className="mt-3 min-h-[40px]">{thumbs}</div>
       </div>
 

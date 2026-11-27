@@ -482,3 +482,10 @@
     40%, 80% { transform: scaleX(1); }
     100% { transform: scaleX(0); }
   }
+
+/* Seller card v2: product slide-in when the carousel changes */
+@keyframes v2SlideNext { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes v2SlidePrev { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.v2-slide-next { animation: v2SlideNext 0.28s ease-out; }
+.v2-slide-prev { animation: v2SlidePrev 0.28s ease-out; }
+@media (prefers-reduced-motion: reduce) { .v2-slide-next, .v2-slide-prev { animation: none; } }
