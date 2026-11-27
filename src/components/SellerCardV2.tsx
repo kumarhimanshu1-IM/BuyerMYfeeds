@@ -27,6 +27,17 @@ function formatBuyersServed(text: string | undefined): string | null {
 }
 
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+const words = (t: string) => t.toLowerCase().replace(/[^a-z0-9.]+/g, ' ').trim();
+
+// Strict value match: identical, or one fully contains the other as whole words and the contained
+// part is at least 3 characters ("Half Bag (1/2)" covers "Half Bag"; "125 kVA" does NOT cover "1").
+function sameValue(a: string, b: string): boolean {
+  const wa = words(a), wb = words(b);
+  if (!wa || !wb) return false;
+  if (wa === wb) return true;
+  const [short, long] = wa.length <= wb.length ? [wa, wb] : [wb, wa];
+  return short.length >= 3 && new RegExp(`(^| )${short.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}( |$)`).test(long);
+}
 
 interface SpecRow { key: string; value: string; match: boolean; }
 
@@ -36,10 +47,7 @@ function buildSpecView(specs: Record<string, string> | undefined, buyer: { quest
   const entries = Object.entries(specs ?? {});
   const matched = new Set<string>();
   const hinted = new Set<string>();
-  const valueCovers = (value: string, answer: string) => {
-    const na = norm(answer);
-    return value.split(';').some(tok => { const nt = norm(tok); return !!nt && !!na && (nt === na || na.includes(nt) || nt.includes(na)); });
-  };
+  const valueCovers = (value: string, answer: string) => value.split(';').some(tok => sameValue(tok, answer));
   for (const b of buyer ?? []) {
     const nq = norm(b.question);
     const byKey = entries.find(([k]) => { const nk = norm(k); return !matched.has(k) && !!nq && !!nk && (nq === nk || nq.includes(nk) || nk.includes(nq)); });
@@ -119,6 +127,13 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
   const productLink = (children: React.ReactNode, className = '') => item.url
     ? <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={item.name} className={className}>{children}</a>
     : <span className={className}>{children}</span>;
+
+  // "1/10" chip on the product section: how many products this seller has in the buyer's category
+  const countChip = items.length > 1 && (
+    <span className="absolute -top-2 right-3 rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-sm">
+      {idx + 1}/{items.length}
+    </span>
+  );
 
   // Dot scroller for the product carousel (tap a dot, or swipe the product section)
   const dots = items.length > 1 && (
@@ -208,7 +223,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
         </div>
 
-        <div {...swipe} className="mt-2.5 rounded-lg bg-slate-100/80 p-2.5">
+        <div {...swipe} className="relative mt-3 rounded-lg bg-slate-100/80 p-2.5">
+          {countChip}
           <div className="flex items-center gap-2.5">
             <div className="h-14 w-14 flex-shrink-0">
               {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
@@ -265,7 +281,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       </div>
 
       {/* 2. Catalog glimpse: image left; name + specs right; price and dot scroller below */}
-      <div {...swipe} className="mt-3.5 rounded-xl bg-slate-100/80 p-3 text-left">
+      <div {...swipe} className="relative mt-3.5 rounded-xl bg-slate-100/80 p-3 text-left">
+        {countChip}
         <div className="flex items-start gap-3">
           <div className="h-[84px] w-[84px] flex-shrink-0">
             {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-lg bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
