@@ -2020,6 +2020,18 @@ function ResultsCarousel({
   resultsAreStale, onFindBestMatch, onOpenFilters,
 }: ResultsCarouselProps) {
   const [carouselPage, setCarouselPage] = useState(0);
+  // v2 card: sideways strip showing 3.5 cards (the half card hints there is more)
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [stripEdge, setStripEdge] = useState({ start: true, end: false });
+  function syncStripEdge() {
+    const el = stripRef.current;
+    if (!el) return;
+    setStripEdge({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
+  }
+  function scrollStrip(dir: 1 | -1) {
+    const el = stripRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: 'smooth' });
+  }
   const list = showNearby ? nearbySellers : topPicks;
   const totalPages = Math.max(1, Math.ceil(list.length / CARDS_PER_PAGE));
   const pageItems = list.slice(carouselPage * CARDS_PER_PAGE, (carouselPage + 1) * CARDS_PER_PAGE);
@@ -2380,6 +2392,50 @@ function ResultsCarousel({
 
       {/* Desktop — 4 cards per page, with edge-overlay nav arrows on whichever side has more */}
       <div className="hidden md:block px-3 pb-2 flex-shrink-0">
+        {USE_CARD_V2 ? (
+          <div className="relative">
+            {!stripEdge.start && (
+              <button
+                onClick={() => scrollStrip(-1)}
+                aria-label="Previous sellers"
+                className="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200 transition-all hover:bg-white hover:text-teal-700"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
+            {!stripEdge.end && (
+              <button
+                onClick={() => scrollStrip(1)}
+                aria-label="More sellers"
+                className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200 transition-all hover:bg-white hover:text-teal-700"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+            <div
+              ref={stripRef}
+              onScroll={syncStripEdge}
+              key={showNearby ? 'nearby' : 'toppicks'}
+              className="flex gap-2.5 overflow-x-auto snap-x snap-mandatory scrollbar-hide pt-3 pb-1 animate-loader-fade-in"
+            >
+              {list.map((seller, idx) => {
+                const { ribbon, ribbonTone } = ribbonFor(idx);
+                return (
+                  <div key={seller.id} className="flex-none snap-start" style={{ width: 'calc((100% - 30px) / 3.5)' }}>
+                    <FinalResultCard
+                      seller={seller}
+                      isBestMatch={!showNearby && seller.id === bestMatchId && !!seller.isBestMatch}
+                      priceRequested={priceRequestedIds.includes(seller.id)}
+                      onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}
+                      ribbon={ribbon}
+                      ribbonTone={ribbonTone}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
         <div className="relative">
           {carouselPage > 0 && (
             <button
@@ -2421,6 +2477,7 @@ function ResultsCarousel({
             })}
           </div>
         </div>
+        )}
 
         {/* Results feedback — desktop: thumbs open an inline dropdown anchored above them.
             Hidden while results are stale — rating results you've already flagged as out of

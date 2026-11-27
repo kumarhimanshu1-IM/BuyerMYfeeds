@@ -4,10 +4,10 @@ import type { SellerCard, SellerProduct } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2). Everything is centred and
 // every card has the same three tiers so rows line up across a grid:
-//   1. Seller introduction + facts (name -> paid URL, TrustSEAL, city, rating, vintage)
+//   1. Seller introduction + facts (name -> paid URL, city, rating, vintage, TrustSEAL)
 //   2. Catalog glimpse (product carousel: image, name, specs, price follow the active product)
 //   3. Why connect (buyers served in 6 months / in your city, payment protection)
-//   CTAs (Best Price, Call Now)
+//   CTAs (Best Price, Call Now) side by side
 interface SellerCardV2Props {
   seller: SellerCard;
   ribbon?: string;
@@ -100,9 +100,6 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         ) : (
           <h3 className={`${nameClass} min-w-0`}>{seller.name}</h3>
         )}
-        {seller.hasTrustSEAL && (
-          <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" aria-label="TrustSEAL" />
-        )}
       </div>
       <p className="mt-0.5 flex items-center justify-center gap-1 text-xs text-slate-500">
         <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -122,11 +119,17 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
             <span className="font-semibold">{years} {years === 1 ? 'yr' : 'yrs'}</span>
           </span>
         )}
+        {seller.hasTrustSEAL && (
+          <span className="inline-flex items-center gap-1 border-l border-slate-200 pl-2">
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+            <span className="font-semibold text-amber-700">TrustSEAL</span>
+          </span>
+        )}
       </div>
 
       {/* 2. Catalog glimpse: carousel, specs and price follow the active product */}
-      <div className="mt-2.5 rounded-lg bg-slate-50 px-2.5 py-2.5">
-        <div className="relative mx-auto h-24 w-full">
+      <div className="mt-2.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+        <div className="relative mx-auto h-20 w-full">
           <img
             key={idx}
             src={item.image}
@@ -134,6 +137,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
             className="mx-auto h-full max-w-full rounded-md object-contain"
             loading="lazy"
           />
+          {items.length > 1 && (
+            <span className="absolute right-0 top-0 rounded-full bg-slate-900/75 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              {idx + 1}/{items.length}
+            </span>
+          )}
           {items.length > 1 && (
             <>
               <button
@@ -155,13 +163,13 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
             </>
           )}
         </div>
-        <p className="mt-2 line-clamp-2 min-h-[32px] text-xs font-semibold leading-snug text-slate-800">{item.name}</p>
-        <div className="mt-1 min-h-[54px] space-y-0.5 text-[11px] leading-snug text-slate-600">
+        <p className="mt-1.5 line-clamp-2 min-h-[32px] text-xs font-semibold leading-snug text-slate-800">{item.name}</p>
+        <div className="mt-1 min-h-[48px] space-y-0.5 text-left text-[11px] leading-snug text-slate-600">
           {specRows.map(([k, v]) => (
             <p key={k} className="truncate"><span className="text-slate-400">{k}:</span> <span className="font-medium">{v}</span></p>
           ))}
         </div>
-        <p className="mt-1 min-h-[24px] text-base font-bold text-teal-700">
+        <p className="mt-1 min-h-[24px] border-t border-slate-200 pt-1 text-base font-bold text-teal-700">
           {hasPrice ? (
             <>
               {item.price}
@@ -171,13 +179,10 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
             <span className="text-sm font-semibold text-slate-500">Ask for price</span>
           )}
         </p>
-        {items.length > 1 && (
-          <p className="mt-0.5 text-[10px] font-medium text-slate-400">{idx + 1} / {items.length} products</p>
-        )}
       </div>
 
       {/* 3. Why connect: buyers served, payment protection */}
-      <div className="mt-2.5 flex min-h-[56px] flex-col items-center justify-start gap-1.5 text-xs text-slate-700">
+      <div className="mt-2.5 flex min-h-[96px] flex-col justify-start gap-1.5 rounded-lg border border-teal-100 bg-teal-50/60 px-2.5 py-2 text-xs text-slate-700">
         {buyersServed && (
           <p className="flex items-center justify-center gap-1.5">
             <TrendingUp className="h-4 w-4 flex-shrink-0 text-slate-500" />
@@ -190,15 +195,13 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
             {cityBuyers} {cityBuyers === 1 ? 'buyer' : 'buyers'} served in your city
           </p>
         )}
-      </div>
-      <div className="h-9">
         {seller.hasTrustSEAL && (
           <a
             href={PAYMENT_PROTECTION_URL}
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}
-            className="flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+            className="mt-auto flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-100 px-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-200 transition-colors"
           >
             <ShieldCheck className="h-4 w-4 flex-shrink-0" />
             ₹5 Lac Payment Protection*
@@ -207,12 +210,12 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
       </div>
 
       {/* CTAs: Best Price (primary) + Call Now */}
-      <div className="mt-auto flex flex-col gap-2 pt-3">
+      <div className="mt-auto grid grid-cols-2 gap-2 pt-3">
         <button
           type="button"
           onClick={e => { e.stopPropagation(); setPriceAsked(true); }}
           disabled={priceAsked}
-          className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold text-white transition-colors ${
+          className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold text-white transition-colors ${
             priceAsked ? 'bg-emerald-600' : 'bg-teal-600 hover:bg-teal-700'
           }`}
         >
@@ -221,7 +224,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         <button
           type="button"
           onClick={handleCall}
-          className={`flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-semibold transition-colors ${
+          className={`flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-[13px] font-semibold transition-colors ${
             callRevealed
               ? `border-transparent text-white ${copied ? 'bg-emerald-600' : 'bg-slate-900 hover:bg-slate-800'}`
               : 'border-teal-600 bg-white text-teal-700 hover:bg-teal-50'
