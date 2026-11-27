@@ -2324,6 +2324,7 @@ function ResultsCarousel({
               <FinalResultCard
                 key={seller.id}
                 seller={seller}
+                v2Compact
                 isBestMatch={!showNearby && seller.id === bestMatchId && !!seller.isBestMatch}
                 priceRequested={priceRequestedIds.includes(seller.id)}
                 onAskPrice={() => setPriceRequestedIds(prev => prev.includes(seller.id) ? prev : [...prev, seller.id])}
@@ -2560,10 +2561,12 @@ export interface FinalResultCardProps {
   // used when the card sits in a narrow column where a full square photo makes
   // the whole card look too tall relative to its width. Ignored when compact.
   photoHeight?: number;
+  // v2 card only: short mobile layout (so ~3.5 cards fit on screen height)
+  v2Compact?: boolean;
 }
 
 export function FinalResultCard(props: FinalResultCardProps) {
-  return USE_CARD_V2 ? <SellerCardV2 seller={props.seller} ribbon={props.ribbon} ribbonTone={props.ribbonTone} /> : <FinalResultCardV1 {...props} />;
+  return USE_CARD_V2 ? <SellerCardV2 seller={props.seller} ribbon={props.ribbon} ribbonTone={props.ribbonTone} compact={props.v2Compact} /> : <FinalResultCardV1 {...props} />;
 }
 
 function FinalResultCardV1({ seller, priceRequested, onAskPrice, ribbon, ribbonTone = 'teal', compact = false, photoHeight }: FinalResultCardProps) {

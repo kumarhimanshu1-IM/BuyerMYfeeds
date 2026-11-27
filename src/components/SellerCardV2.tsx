@@ -12,6 +12,8 @@ interface SellerCardV2Props {
   seller: SellerCard;
   ribbon?: string;
   ribbonTone?: 'amber' | 'teal' | 'slate';
+  // Short mobile layout: name, facts, one product row, one buyers line, CTAs
+  compact?: boolean;
 }
 
 // Same rule as the original card's highlight line (hidden under 5 buyers), but shows the actual count.
@@ -35,7 +37,7 @@ const RIBBON_TONE: Record<string, string> = {
   slate: 'bg-slate-600 text-white',
 };
 
-export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: SellerCardV2Props) {
+export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', compact = false }: SellerCardV2Props) {
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [priceAsked, setPriceAsked] = useState(false);
@@ -73,6 +75,99 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         setTimeout(() => setCopied(false), 1800);
       });
     }
+  }
+
+
+  if (compact) {
+    return (
+      <div className="relative flex flex-col rounded-xl border border-slate-200 bg-white p-2.5 text-center shadow-sm">
+        {ribbon && (
+          <span className={`absolute -top-2 left-3 rounded px-2 py-0.5 text-[10px] font-bold ${RIBBON_TONE[ribbonTone]}`}>
+            {ribbon}
+          </span>
+        )}
+        {/* Intro: name, then city / rating / vintage / TrustSEAL on one line */}
+        {seller.paidUrl ? (
+          <a href={seller.paidUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="truncate text-sm font-bold text-slate-900 hover:text-teal-700">
+            {seller.name}
+          </a>
+        ) : (
+          <h3 className="truncate text-sm font-bold text-slate-900">{seller.name}</h3>
+        )}
+        <div className="mt-0.5 flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] text-slate-600">
+          <span className="inline-flex min-w-0 items-center gap-0.5"><MapPin className="h-3 w-3 flex-shrink-0" /><span className="truncate max-w-[80px]">{seller.city}</span></span>
+          {seller.reviews > 0 && (
+            <span className="inline-flex items-center gap-0.5 border-l border-slate-200 pl-1.5">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span className="font-semibold text-slate-700">{seller.rating.toFixed(1)}</span>
+            </span>
+          )}
+          {years > 0 && <span className="border-l border-slate-200 pl-1.5 font-semibold text-slate-700">{years} {years === 1 ? 'yr' : 'yrs'}</span>}
+          {seller.hasTrustSEAL && (
+            <span className="inline-flex items-center gap-0.5 border-l border-slate-200 pl-1.5 font-semibold text-amber-700">
+              <ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL
+            </span>
+          )}
+        </div>
+
+        {/* Catalog: one product row, arrows to switch */}
+        <div className="mt-2 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1.5">
+          <div className="relative h-12 w-12 flex-shrink-0">
+            <img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />
+            {items.length > 1 && (
+              <span className="absolute -right-1 -top-1 rounded-full bg-slate-900/75 px-1 text-[9px] font-semibold text-white">{idx + 1}/{items.length}</span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            <p className="truncate text-xs font-semibold text-slate-800">{item.name}</p>
+            <p className="truncate text-[10px] text-slate-500">
+              {Object.entries(item.specs ?? {}).slice(0, 2).map(([k, v]) => `${k}: ${v}`).join(' · ') || ' '}
+            </p>
+            <p className="text-sm font-bold text-teal-700">
+              {hasPrice ? <>{item.price}{item.priceUnit ? <span className="text-[10px] font-semibold text-slate-500">{item.priceUnit}</span> : null}</> : <span className="text-xs font-semibold text-slate-500">Ask for price</span>}
+            </p>
+          </div>
+          {items.length > 1 && (
+            <div className="flex flex-shrink-0 flex-col gap-1">
+              <button type="button" aria-label="Previous product" onClick={e => go(-1, e)} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-700 shadow"><ChevronLeft className="h-4 w-4" /></button>
+              <button type="button" aria-label="Next product" onClick={e => go(1, e)} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-700 shadow"><ChevronRight className="h-4 w-4" /></button>
+            </div>
+          )}
+        </div>
+
+        {/* Why connect: buyers served + payment protection on one line */}
+        {(buyersServed || cityBuyers > 0 || seller.hasTrustSEAL) && (
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 rounded-lg border border-teal-100 bg-teal-50/60 px-2 py-1 text-[11px] text-slate-700">
+            {buyersServed && <span className="inline-flex items-center gap-1"><TrendingUp className="h-3 w-3 text-slate-500" />{buyersServed}</span>}
+            {cityBuyers > 0 && <span className="inline-flex items-center gap-1 font-semibold text-teal-700"><MapPin className="h-3 w-3" />{cityBuyers} in your city</span>}
+            {seller.hasTrustSEAL && (
+              <a href={PAYMENT_PROTECTION_URL} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                <ShieldCheck className="h-3 w-3" />₹5 Lac Payment Protection*
+              </a>
+            )}
+          </div>
+        )}
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); setPriceAsked(true); }}
+            disabled={priceAsked}
+            className={`flex items-center justify-center gap-1 rounded-lg py-1.5 text-[13px] font-semibold text-white ${priceAsked ? 'bg-emerald-600' : 'bg-teal-600'}`}
+          >
+            {priceAsked ? <><Check className="h-4 w-4" strokeWidth={3} />Requested</> : 'Best Price'}
+          </button>
+          <button
+            type="button"
+            onClick={handleCall}
+            className={`flex items-center justify-center gap-1 rounded-lg border py-1.5 text-[13px] font-semibold ${callRevealed ? `border-transparent text-white ${copied ? 'bg-emerald-600' : 'bg-slate-900'}` : 'border-teal-600 bg-white text-teal-700'}`}
+          >
+            <Phone className="h-4 w-4" />
+            {callRevealed ? (copied ? 'Copied' : seller.phone ?? 'Call Now') : 'Call Now'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const nameClass = 'text-[15px] font-bold leading-tight text-slate-900 line-clamp-2 text-center';
