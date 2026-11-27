@@ -11,13 +11,13 @@ interface SellerCardV2Props {
   ribbonTone?: 'amber' | 'teal' | 'slate';
 }
 
-// Same formatting rules as the original card's highlight line (hidden under 5 buyers, capped at 100+).
+// Same rules as the original card's highlight line (hidden under 5 buyers), but shows the actual count (no 100+ cap).
 function formatHighlight(text: string): string | null {
   const m = text.match(/^(\d+) buyers served in 6m$/);
   if (!m) return text;
   const n = parseInt(m[1], 10);
   if (n < 5) return null;
-  return n > 100 ? '100+ buyers served in 6 months' : `${n} buyers served in 6 months`;
+  return `${n} buyers served in 6 months`;
 }
 
 const RIBBON_TONE: Record<string, string> = {
