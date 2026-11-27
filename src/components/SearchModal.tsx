@@ -311,6 +311,8 @@ function extractCityBuyers6m(s: CuratedSeller): number | null {
 function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): SellerCard[] {
   return list.map((s, idx) => {
     const custTypeWt = Number(s.CustTypeWt);
+    // CustTypeWt <= 199 (and present) => TrustSEAL badge + payment protection
+    const isTrustSealWt = s.CustTypeWt != null && String(s.CustTypeWt).trim() !== '' && !Number.isNaN(custTypeWt) && custTypeWt > 0 && custTypeWt <= 199;
     const rating = typeof s.supplier_rating === 'number'
       ? s.supplier_rating
       : typeof s.rating === 'number' ? s.rating : 0;
@@ -360,8 +362,8 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): 
       reviews,
       years: yearsMatch ? parseInt(yearsMatch[1], 10) : (s.vintage_years ?? 0),
       hasGST: !!s.gst_verified && s.gst_verified !== '0',
-      hasTrustSEAL: !Number.isNaN(custTypeWt) && custTypeWt >= 199,
-      hasPayProtected: !!s.trustseal,
+      hasTrustSEAL: isTrustSealWt,
+      hasPayProtected: isTrustSealWt,
       image: primaryImage,
       products: extraProducts.length > 0
         ? [{ name: primaryTitle, price: s.price_formatted ?? 'Ask for price', priceUnit: '', image: primaryImage }, ...extraProducts]
