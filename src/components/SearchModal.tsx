@@ -34,6 +34,9 @@ export interface SellerProduct {
   price: string;
   priceUnit: string;
   image: string;
+  // Catalog specs (label -> value) and product page, used by the v2 card carousel
+  specs?: Record<string, string>;
+  url?: string;
 }
 
 export interface SellerCard {
@@ -67,6 +70,8 @@ export interface SellerCard {
   paidUrl?: string;
   // Number of this seller's products listed in the buyer's MCAT (p2_breakdown.productcount)
   productCount?: number;
+  // Seller's products in the buyer's MCAT with specs (v2 card carousel)
+  catalog?: SellerProduct[];
 }
 
 interface FilterSection {
@@ -334,6 +339,8 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): 
           price: Number.isFinite(n) && n > 0 ? `₹ ${n.toLocaleString('en-IN')}` : 'Ask for price',
           priceUnit: p.fob_price_unit ? `/${p.fob_price_unit}` : '',
           image: p.image || primaryImage,
+          specs: p.specifications && Object.keys(p.specifications).length ? p.specifications : undefined,
+          url: p.title_url || undefined,
         };
       });
     const legacyProducts: SellerProduct[] = (s.products ?? [])
@@ -370,6 +377,7 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): 
         : undefined,
       cityBuyers6m: cityBuyers ?? undefined,
       productName: primaryTitle,
+      catalog: catalogProducts.length > 0 ? catalogProducts : undefined,
       paidUrl: s.paid_url || s.title_url || undefined,
       productCount: (() => {
         const n = Number((s.p2_breakdown as { productcount?: unknown } | undefined)?.productcount);
