@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
-import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp, X } from 'lucide-react';
 import type { SellerCard, SellerProduct } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2). Centred, three tiers, no inner
@@ -77,11 +78,79 @@ const RIBBON_TONE: Record<string, string> = {
   slate: 'bg-slate-600 text-white',
 };
 
+function CatalogPanel({ seller, items, activeIdx, onPick, onClose }: {
+  seller: SellerCard;
+  items: SellerProduct[];
+  activeIdx: number;
+  onPick: (n: number) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[10001] flex items-end justify-center bg-black/40 md:items-center" onClick={e => { e.stopPropagation(); onClose(); }}>
+      <div
+        role="dialog"
+        aria-label={`${seller.name} products`}
+        className="flex max-h-[80vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl md:max-w-md md:rounded-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-slate-900">{seller.name}</p>
+            <p className="text-xs text-slate-500">{items.length} products in this category</p>
+          </div>
+          <button type="button" aria-label="Close" onClick={onClose} className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+        </div>
+        <ul className="divide-y divide-slate-100 overflow-y-auto">
+          {items.map((it, n) => {
+            const specs = buildSpecView(it.specs, seller.buyerSpecs).slice(0, 3);
+            const hasP = it.price && it.price !== 'Ask for price';
+            return (
+              <li key={`${it.name}-${n}`} className={n === activeIdx ? 'bg-teal-50/50' : ''}>
+                <div className="flex w-full items-start gap-3 px-4 py-3 text-left">
+                  <button type="button" onClick={() => onPick(n)} className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-slate-50" aria-label={`Show ${it.name} on the card`}>
+                    <img src={it.image} alt="" className="h-full w-full object-contain" loading="lazy" />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    {it.url ? (
+                      <a href={it.url} target="_blank" rel="noopener noreferrer" className="line-clamp-2 text-xs font-semibold text-slate-800 hover:text-teal-700 hover:underline">{it.name}</a>
+                    ) : (
+                      <p className="line-clamp-2 text-xs font-semibold text-slate-800">{it.name}</p>
+                    )}
+                    <div className="mt-1 space-y-0.5 text-[11px] leading-snug">
+                      {specs.map(r => (
+                        <p key={r.key} className={`truncate ${r.match ? 'rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
+                          {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
+                          <span className={r.match ? 'opacity-80' : 'text-slate-400'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+                    <p className="text-sm font-bold text-teal-700">{hasP ? <>{it.price}<span className="text-[10px] font-semibold text-slate-500">{it.priceUnit}</span></> : <span className="text-xs font-semibold text-slate-500">Ask for price</span>}</p>
+                    <button type="button" onClick={() => onPick(n)} className="rounded-md border border-teal-600 px-2 py-0.5 text-[11px] font-semibold text-teal-700 hover:bg-teal-50">{n === activeIdx ? 'Showing' : 'Show'}</button>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', compact = false }: SellerCardV2Props) {
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [priceAsked, setPriceAsked] = useState(false);
   const [active, setActive] = useState(0);
+  const [panelOpen, setPanelOpen] = useState(false);
   const touchX = useRef<number | null>(null);
 
   const years = Math.round(seller.years);
@@ -135,20 +204,38 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
     </span>
   );
 
-  // Dot scroller for the product carousel (tap a dot, or swipe the product section)
-  const dots = items.length > 1 && (
-    <div className="flex items-center gap-1" role="tablist" aria-label="Products">
-      {items.map((_, n) => (
+  // Thumbnail strip: up to 4 products at a glance (tap to switch) + a "+N" tile that opens the full
+  // catalog. When a product beyond the first 4 is active it takes the last slot so it stays visible.
+  const VISIBLE = 4;
+  const shownIdx = items.length <= VISIBLE + 1
+    ? items.map((_, n) => n)
+    : idx < VISIBLE ? [0, 1, 2, 3] : [0, 1, 2, idx];
+  const moreCount = items.length > VISIBLE + 1 ? items.length - VISIBLE : 0;
+  const thumbs = items.length > 1 && (
+    <div className="flex items-center gap-1.5">
+      {shownIdx.map(n => (
         <button
           key={n}
           type="button"
-          role="tab"
-          aria-selected={n === idx}
-          aria-label={`Product ${n + 1} of ${items.length}`}
+          title={items[n].name}
+          aria-label={`Show ${items[n].name}`}
+          aria-current={n === idx}
           onClick={e => { e.stopPropagation(); setActive(n); }}
-          className={`h-1.5 rounded-full transition-all ${n === idx ? 'w-4 bg-teal-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}`}
-        />
+          className={`h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-white transition-all ${n === idx ? 'ring-2 ring-teal-600' : 'opacity-70 ring-1 ring-slate-200 hover:opacity-100'}`}
+        >
+          <img src={items[n].image} alt="" className="h-full w-full object-contain" loading="lazy" />
+        </button>
       ))}
+      {moreCount > 0 && (
+        <button
+          type="button"
+          aria-label={`View all ${items.length} products`}
+          onClick={e => { e.stopPropagation(); setPanelOpen(true); }}
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white text-[11px] font-bold text-teal-700 ring-1 ring-teal-600 hover:bg-teal-50"
+        >
+          +{moreCount}
+        </button>
+      )}
     </div>
   );
   const swipe = {
@@ -160,6 +247,16 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       if (Math.abs(dx) > 40) setActive((idx + (dx < 0 ? 1 : -1) + items.length) % items.length);
     },
   };
+
+  const panel = panelOpen && (
+    <CatalogPanel
+      seller={seller}
+      items={items}
+      activeIdx={idx}
+      onPick={n => { setActive(n); setPanelOpen(false); }}
+      onClose={() => setPanelOpen(false)}
+    />
+  );
 
   const ribbonEl = ribbon && (
     <span className={`absolute -top-2 left-3 rounded px-2 py-0.5 text-[10px] font-bold ${RIBBON_TONE[ribbonTone]}`}>
@@ -239,7 +336,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
             </div>
           </div>
           <p className="mt-2 text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
-          {dots && <div className="mt-2 flex h-1.5 justify-center">{dots}</div>}
+          {thumbs && <div className="mt-2.5">{thumbs}</div>}
         </div>
 
         {(servedLine || seller.hasTrustSEAL) && (
@@ -254,6 +351,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         )}
 
         <div className="mt-2 grid grid-cols-2 gap-2">{bestPrice}{call}</div>
+        {panel}
       </div>
     );
   }
@@ -300,7 +398,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           </div>
         </div>
         <p className="mt-3 min-h-[24px] text-base font-bold leading-tight text-teal-700">{priceNode}</p>
-        <div className="mt-2 flex h-1.5 justify-center">{dots}</div>
+        <div className="mt-3 min-h-[40px]">{thumbs}</div>
       </div>
 
       {/* 3. Why connect: buyers served, payment protection */}
@@ -326,6 +424,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2 pt-3">{bestPrice}{call}</div>
+      {panel}
     </div>
   );
 }
