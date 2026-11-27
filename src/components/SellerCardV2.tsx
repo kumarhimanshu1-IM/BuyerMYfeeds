@@ -258,6 +258,19 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
     />
   );
 
+  const payPill = seller.hasTrustSEAL && (
+    <a
+      href={PAYMENT_PROTECTION_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={e => e.stopPropagation()}
+      className="inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+    >
+      <ShieldCheck className="h-3 w-3 flex-shrink-0" />
+      ₹5 Lac Payment Protection*
+    </a>
+  );
+
   const ribbonEl = ribbon && (
     <span className={`absolute -top-2 left-3 rounded px-2 py-0.5 text-[10px] font-bold ${RIBBON_TONE[ribbonTone]}`}>
       {ribbon}
@@ -319,6 +332,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           {years > 0 && <>{dot}<span className="font-semibold text-slate-700">{years} {years === 1 ? 'yr' : 'yrs'}</span></>}
           {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
         </div>
+        {payPill && <div className="mt-1.5 flex justify-center">{payPill}</div>}
 
         <div {...swipe} className="relative mt-3 rounded-lg bg-slate-100/80 p-2.5">
           {countChip}
@@ -339,15 +353,10 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           {thumbs && <div className="mt-2.5">{thumbs}</div>}
         </div>
 
-        {(servedLine || seller.hasTrustSEAL) && (
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[11px] text-slate-700">
-            {servedLine && <span className="inline-flex items-center gap-1"><TrendingUp className="h-3 w-3 flex-shrink-0 text-slate-500" /><span>{servedLine}</span></span>}
-            {seller.hasTrustSEAL && (
-              <a href={PAYMENT_PROTECTION_URL} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                <ShieldCheck className="h-3 w-3" />₹5 Lac Payment Protection*
-              </a>
-            )}
-          </div>
+        {servedLine && (
+          <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] text-slate-700">
+            <TrendingUp className="h-3 w-3 flex-shrink-0 text-slate-500" /><span>{servedLine}</span>
+          </p>
         )}
 
         <div className="mt-2 grid grid-cols-2 gap-2">{bestPrice}{call}</div>
@@ -377,17 +386,18 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         {years > 0 && <>{seller.reviews > 0 && dot}<span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-slate-500" /><span className="font-semibold">{years} {years === 1 ? 'yr' : 'yrs'}</span></span></>}
         {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
       </div>
+      <div className="mt-1.5 flex h-5 justify-center">{payPill}</div>
 
-      {/* 2. Catalog glimpse: image left; name + specs right; price and dot scroller below */}
-      <div {...swipe} className="relative mt-3.5 rounded-xl bg-slate-100/80 p-3 text-left">
+      {/* 2. Catalog glimpse: image left; name + specs right; price and thumbnails below */}
+      <div {...swipe} className="relative mt-3.5 rounded-xl bg-slate-100/80 p-3.5 text-left">
         {countChip}
         <div className="flex items-start gap-3">
-          <div className="h-[84px] w-[84px] flex-shrink-0">
+          <div className="h-[96px] w-[96px] flex-shrink-0">
             {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-lg bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
           </div>
           <div className="min-w-0 flex-1">
             <p className="line-clamp-2 min-h-[32px] text-xs font-semibold leading-snug text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline underline-offset-2' : '')}</p>
-            <div className="mt-1.5 min-h-[58px] space-y-1 text-[11px] leading-snug">
+            <div className="mt-2 min-h-[66px] space-y-1.5 text-[11px] leading-snug">
               {specRows.map(r => (
                 <p key={r.key} title={r.match ? 'Matches your requirement' : undefined} className={`truncate ${r.match ? '-mx-1 rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
                   {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
@@ -397,29 +407,17 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
             </div>
           </div>
         </div>
-        <p className="mt-3 min-h-[24px] text-base font-bold leading-tight text-teal-700">{priceNode}</p>
+        <p className="mt-3.5 min-h-[24px] text-base font-bold leading-tight text-teal-700">{priceNode}</p>
         <div className="mt-3 min-h-[40px]">{thumbs}</div>
       </div>
 
       {/* 3. Why connect: buyers served, payment protection */}
-      <div className="mt-3 flex min-h-[74px] flex-col gap-1.5 text-xs text-slate-700">
+      <div className="mt-3 flex min-h-[36px] items-center justify-center text-xs text-slate-700">
         {servedLine && (
           <p className="flex items-center justify-center gap-1.5 text-center leading-snug">
             <TrendingUp className="h-4 w-4 flex-shrink-0 text-slate-500" />
             <span>{servedLine}</span>
           </p>
-        )}
-        {seller.hasTrustSEAL && (
-          <a
-            href={PAYMENT_PROTECTION_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="mt-auto flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-50 px-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
-          >
-            <ShieldCheck className="h-4 w-4 flex-shrink-0" />
-            ₹5 Lac Payment Protection*
-          </a>
         )}
       </div>
 
