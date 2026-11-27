@@ -72,6 +72,10 @@ export interface SellerCard {
   productCount?: number;
   // Seller's products in the buyer's MCAT with specs (v2 card carousel)
   catalog?: SellerProduct[];
+  // What the buyer filled in (spec question -> answer) and their city; the v2 card uses these to
+  // surface and highlight matching product specs and to name the city in the buyers-served line
+  buyerSpecs?: { question: string; answer: string }[];
+  buyerCity?: string;
 }
 
 interface FilterSection {
@@ -313,7 +317,7 @@ function extractCityBuyers6m(s: CuratedSeller): number | null {
 // the SellerCard shape the results grid already renders — so cards stay
 // API-powered once Find Best Match is clicked, instead of reusing the
 // hardcoded SELLERS demo list.
-function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): SellerCard[] {
+function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string, buyerSpecs?: SpecAnswer[], buyerCity?: string): SellerCard[] {
   return list.map((s, idx) => {
     const custTypeWt = Number(s.CustTypeWt);
     // CustTypeWt <= 199 (and present) => TrustSEAL badge + payment protection
@@ -378,6 +382,8 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): 
       cityBuyers6m: cityBuyers ?? undefined,
       productName: primaryTitle,
       catalog: catalogProducts.length > 0 ? catalogProducts : undefined,
+      buyerSpecs,
+      buyerCity,
       paidUrl: s.paid_url || s.title_url || undefined,
       productCount: (() => {
         const n = Number((s.p2_breakdown as { productcount?: unknown } | undefined)?.productcount);
@@ -800,11 +806,11 @@ const [localOnly, setLocalOnly] = useState(false);
       // Nearby Sellers: ranked by distance (dist_km) from the same response.
       const rankedByDistance = [...finalSellers].sort((a, b) => (a.dist_km ?? 0) - (b.dist_km ?? 0));
 
-      const mapped = mapCuratedSellersToCards(rankedByRank, mcatId);
+      const mapped = mapCuratedSellersToCards(rankedByRank, mcatId, specifications, cityForThisRun);
       if (mapped.length > 0) {
         mapped[0] = { ...mapped[0], isBestMatch: true };
       }
-      const mappedNearby = mapCuratedSellersToCards(rankedByDistance, mcatId);
+      const mappedNearby = mapCuratedSellersToCards(rankedByDistance, mcatId, specifications, cityForThisRun);
 
       setSellers(mapped);
       setTopPicks(mapped);
