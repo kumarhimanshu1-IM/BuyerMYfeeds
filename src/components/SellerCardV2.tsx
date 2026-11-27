@@ -24,24 +24,14 @@ function formatBuyersServed(text: string | undefined): string | null {
   return n < 5 ? null : `${n} buyers served in 6 months`;
 }
 
+// Payment Protection Plan terms page (opened from the green strip)
+const PAYMENT_PROTECTION_URL = 'https://help.indiamart.com/knowledge-base/payment-protection-plan';
+
 const RIBBON_TONE: Record<string, string> = {
   amber: 'bg-amber-500 text-white',
   teal: 'bg-teal-600 text-white',
   slate: 'bg-slate-600 text-white',
 };
-
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="inline-flex items-center gap-px" aria-hidden>
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star
-          key={i}
-          className={`h-3 w-3 ${rating >= i - 0.25 ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`}
-        />
-      ))}
-    </span>
-  );
-}
 
 export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: SellerCardV2Props) {
   const [callRevealed, setCallRevealed] = useState(false);
@@ -66,7 +56,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
     }
   }
 
-  const nameClass = 'text-[15px] font-bold leading-tight text-slate-900 line-clamp-2';
+  const nameClass = 'text-[15px] font-bold leading-tight text-slate-900 line-clamp-2 min-h-[38px]';
 
   return (
     <div className="relative flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
@@ -77,7 +67,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
       )}
 
       {/* Header: logo (product image), name, city */}
-      <div className="flex min-h-[56px] items-start gap-3">
+      <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
           {seller.image ? (
             <img src={seller.image} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -106,26 +96,24 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         </div>
       </div>
 
-      {/* Trust row: vintage, rating, TrustSEAL — fixed height so every card lines up */}
-      <div className="mt-2.5 flex min-h-[40px] flex-col justify-center gap-1 text-xs text-slate-700">
-        <div className="flex items-center gap-3">
-          {years > 0 && (
-            <span className="inline-flex items-center gap-1 font-semibold">
-              <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
-              {years} {years === 1 ? 'yr' : 'yrs'}
-            </span>
-          )}
-          {seller.reviews > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Stars rating={seller.rating} />
-              <span className="font-semibold">{seller.rating.toFixed(1)}</span>
-              <span className="text-slate-400">({seller.reviews})</span>
-            </span>
-          )}
-        </div>
+      {/* Trust row: rating, vintage, TrustSEAL on one line */}
+      <div className="mt-2.5 flex h-5 items-center gap-2 whitespace-nowrap text-[11px] text-slate-700">
+        {seller.reviews > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="font-semibold">{seller.rating.toFixed(1)}</span>
+            <span className="text-slate-400">({seller.reviews})</span>
+          </span>
+        )}
+        {years > 0 && (
+          <span className="inline-flex items-center gap-1 border-l border-slate-200 pl-2">
+            <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+            <span className="font-semibold">{years} {years === 1 ? 'yr' : 'yrs'}</span>
+          </span>
+        )}
         {seller.hasTrustSEAL && (
-          <span className="inline-flex items-center gap-1 font-semibold">
-            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" /> TrustSEAL
+          <span className="inline-flex items-center gap-1 border-l border-slate-200 pl-2 font-semibold">
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />TrustSEAL
           </span>
         )}
       </div>
@@ -152,13 +140,19 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         )}
       </div>
 
-      {/* Payment protection slot (empty space when the seller doesn't have it, to keep rows aligned) */}
-      <div className="mt-2.5 min-h-[48px]">
+      {/* Payment protection slot (blank when the seller doesn't have it, to keep rows aligned) */}
+      <div className="mt-2.5 h-9">
         {seller.hasTrustSEAL && (
-          <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+          <a
+            href={PAYMENT_PROTECTION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="flex h-9 items-center gap-2 whitespace-nowrap rounded-lg bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+          >
             <ShieldCheck className="h-4 w-4 flex-shrink-0" />
-            Covered up to ₹5 Lac Payment Protection*
-          </div>
+            ₹5 Lac Payment Protection*
+          </a>
         )}
       </div>
 
