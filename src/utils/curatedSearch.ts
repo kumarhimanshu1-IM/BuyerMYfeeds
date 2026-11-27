@@ -76,6 +76,77 @@ const CREATE_JOB_URL =
 const JOB_STATUS_URL =
   'https://buyer.indiamart.com/miscreact/ajaxrequest/buyermy/curatedsellersearch/windmill/status';
 
+// ── Experiment pipeline (?pipeline=exp) ─────────────────────────────────────
+// Calls the Windmill experiment script directly instead of the IndiaMART proxy.
+// The bearer token is never in the code: it is asked for once and kept in this
+// browser's localStorage (key "wm_token").
+const WM_BASE = 'https://windmill-prod.intermesh.net/api/w/production';
+const WM_EXP_SCRIPT = 'f/curated_sellers_script_exp/curated_sellers_pipeline';
+
+function useExperimentPipeline(): boolean {
+  try {
+    return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('pipeline') === 'exp';
+  } catch {
+    return false;
+  }
+}
+
+function getWindmillToken(): string | null {
+  try {
+    let token = window.localStorage.getItem('wm_token');
+    if (!token) {
+      token = window.prompt('Windmill token for the experiment pipeline (stored only in this browser):')?.trim() || null;
+      if (token) window.localStorage.setItem('wm_token', token);
+    }
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+// Maps the proxy-style payload to the pipeline's own inputs (same shape the proxy
+// produces: spec answers in isq + parallel arrays, quantity inside isq).
+function toWindmillArgs(p: CuratedSearchPayload) {
+  const isq: Record<string, string> = {};
+  for (const sp of p.specifications) isq[sp.question] = sp.answer;
+  if (p.quantity) isq['Quantity'] = p.quantity;
+  if (p.quantity_unit) isq['Quantity Unit'] = p.quantity_unit;
+  return {
+    nodeflag: '',
+    ak: '',
+    debugger: false,
+    buyer_id: '',
+    offer_id: p.offer_id,
+    mcat_id: p.mcat_id,
+    mcat_name: p.mcat_name,
+    query: p.keyword,
+    city_id: p.city_id,
+    cityname: p.buyer_city,
+    isq,
+    spec_question: p.specifications.map(sp => sp.question),
+    spec_answer: p.specifications.map(sp => sp.answer),
+    search_params: {
+      query: p.keyword,
+      max_price: '',
+      min_price: '',
+      categoryid: '',
+      price_unit: '',
+      mcategoryid: p.mcat_id,
+    },
+    buyer_context: {
+      source: 'BuyerMY',
+      city_id: p.city_id,
+      city_data: p.buyer_city,
+      city_match: p.city_match || 'exact',
+      lang_explicit: 'en',
+      for_country_data: 'IN',
+      for_country_type: 'India',
+      geo_country_code: 'IN',
+      geo_country_name: 'India',
+    },
+  };
+}
+
 function extractJobId(raw: unknown): string | null {
   if (!raw) return null;
   if (typeof raw === 'string') return raw;
@@ -92,6 +163,26 @@ export async function createCuratedSearchJob(
   payload: CuratedSearchPayload,
   signal?: AbortSignal
 ): Promise<string | null> {
+  if (useExperimentPipeline()) {
+    const token = getWindmillToken();
+    if (!token) return null;
+    const args = toWindmillArgs(payload);
+    console.info('[exp pipeline] create job', args);
+    const r = await fetch(`${WM_BASE}/jobs/run/p/${WM_EXP_SCRIPT}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(args),
+      signal,
+    });
+    if (!r.ok) {
+      console.error('[exp pipeline] create failed', r.status, await r.text());
+      return null;
+    }
+    const id = (await r.text()).trim().replace(/^"|"$/g, '');
+    console.info('[exp pipeline] job id', id);
+    return id || null;
+  }
+
   const res = await fetch(CREATE_JOB_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -159,12 +250,23 @@ export async function fetchCuratedSearchStatus(
   jobId: string,
   signal?: AbortSignal
 ): Promise<JobStatusResult> {
-  const res = await fetch(JOB_STATUS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ job_id: jobId }),
-    signal,
-  });
+  let res: Response;
+  if (useExperimentPipeline()) {
+    const token = getWindmillToken();
+    if (!token) return { status: 'error' };
+    res = await fetch(`${WM_BASE}/jobs_u/completed/get_result_maybe/${encodeURIComponent(jobId)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    });
+    if (res.status === 404) return { status: 'pending' }; // not finished yet
+  } else {
+    res = await fetch(JOB_STATUS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId }),
+      signal,
+    });
+  }
   if (!res.ok) return { status: 'error' };
 
   const raw = await res.text();
@@ -177,6 +279,10 @@ export async function fetchCuratedSearchStatus(
     // "completed": true is the authoritative signal to stop polling —
     // use whatever seller data came back (even an empty list) at that point.
     if (obj.completed === true) {
+      if (obj.success === false) {
+        console.error('[curated search] job failed', obj.result);
+        return { status: 'error' };
+      }
       return { status: 'done', sellers: extractSellerList(data) ?? [] };
     }
 
