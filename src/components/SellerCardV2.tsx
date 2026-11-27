@@ -69,6 +69,18 @@ function buildSpecView(specs: Record<string, string> | undefined, buyer: { quest
 // BuyerMY payment safety page (opened from the green strip)
 const PAYMENT_PROTECTION_URL = 'https://buyer.indiamart.com/?utm_source=Desktop_BuyerMY&tabname=paymentsafety';
 
+// Query-parameter the payment safety page reads the seller's number from (CONFIRM with the page owner)
+const PAYMENT_PROTECTION_PHONE_PARAM = 'pns';
+
+// "+91-8047671894" / "918047671894" / "8047671894" -> "08047671894" (0 + 10-digit number); null if it isn't one
+function normalisePns(raw: string | undefined): string | null {
+  if (!raw) return null;
+  let d = raw.replace(/\D/g, '');
+  if (d.length === 12 && d.startsWith('91')) d = d.slice(2);
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+  return d.length === 10 ? `0${d}` : null;
+}
+
 // Spec rows shown under the active product
 const SPEC_ROWS = 3;
 
@@ -287,9 +299,13 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
     </span>
   ) : null;
 
+  // Payment safety page opens with the seller's number prefilled (only here is it normalised)
+  const payPhone = normalisePns(seller.phone);
+  const payUrl = payPhone ? `${PAYMENT_PROTECTION_URL}&${PAYMENT_PROTECTION_PHONE_PARAM}=${payPhone}` : PAYMENT_PROTECTION_URL;
+
   const payPill = seller.hasTrustSEAL && (
     <a
-      href={PAYMENT_PROTECTION_URL}
+      href={payUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={e => e.stopPropagation()}
