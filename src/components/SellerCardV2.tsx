@@ -92,7 +92,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className={`${nameClass} block hover:text-teal-700 hover:underline underline-offset-2`}
+              className={`${nameClass} hover:text-teal-700 hover:underline underline-offset-2`}
             >
               {seller.name}
             </a>
@@ -154,7 +154,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
 
       {/* Payment protection slot (empty space when the seller doesn't have it, to keep rows aligned) */}
       <div className="mt-2.5 min-h-[48px]">
-        {seller.hasPayProtected && (
+        {seller.hasTrustSEAL && (
           <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
             <ShieldCheck className="h-4 w-4 flex-shrink-0" />
             Covered up to ₹5 Lac Payment Protection*
