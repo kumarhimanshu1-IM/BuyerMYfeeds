@@ -225,7 +225,7 @@ function highlightIcon(text: string) {
 // otherwise how far away they are.
 function nearbyRibbonLabel(seller: SellerCard): string {
   const km = Math.round(seller.distance);
-  return km <= 0 ? 'Same city' : `${km} kms away`;
+  return km <= 0 ? 'Same City' : `${km} km away`;
 }
 
 // "N buyers served in 6m" — below 5 is too thin a signal to show (blank line instead);
@@ -2178,6 +2178,8 @@ function ResultsCarousel({
       const seller = list[carouselPage * CARDS_PER_PAGE + idx];
       return { ribbon: seller ? nearbyRibbonLabel(seller) : undefined, ribbonTone: idx === 0 ? 'teal' : 'slate' };
     }
+    // v2 card: no ribbons on Top Picks (only the Nearby Sellers tab shows Same city / X kms away)
+    if (USE_CARD_V2) return { ribbon: undefined, ribbonTone: 'teal' };
     if (idx === 0 && carouselPage === 0) return { ribbon: 'Best Overall', ribbonTone: 'amber' };
     const seller = list[carouselPage * CARDS_PER_PAGE + idx];
     const pageStart = carouselPage * CARDS_PER_PAGE;
@@ -2331,6 +2333,7 @@ function ResultsCarousel({
               if (showNearby) {
                 return { ribbon: nearbyRibbonLabel(seller), ribbonTone: (idx === 0 ? 'teal' : 'slate') as 'teal' | 'slate' };
               }
+              if (USE_CARD_V2) return { ribbon: undefined, ribbonTone: 'teal' as const };
               if (idx === 0) return { ribbon: 'Best Overall', ribbonTone: 'amber' as const };
               const sameCityCount = list.filter(s => s.city === seller.city).length;
               if (sameCityCount >= 2) return { ribbon: 'Nearby Seller', ribbonTone: 'teal' as const };
