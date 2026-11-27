@@ -222,10 +222,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
               </p>
             </div>
           </div>
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
-            {dots}
-          </div>
+          <p className="mt-2 text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
+          {dots && <div className="mt-2 flex h-1.5 justify-center">{dots}</div>}
         </div>
 
         {(servedLine || seller.hasTrustSEAL) && (
@@ -284,10 +282,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
             </div>
           </div>
         </div>
-        <div className="mt-3 flex min-h-[24px] items-center justify-between gap-2">
-          <p className="text-base font-bold leading-tight text-teal-700">{priceNode}</p>
-          {dots}
-        </div>
+        <p className="mt-3 min-h-[24px] text-base font-bold leading-tight text-teal-700">{priceNode}</p>
+        <div className="mt-2 flex h-1.5 justify-center">{dots}</div>
       </div>
 
       {/* 3. Why connect: buyers served, payment protection */}
