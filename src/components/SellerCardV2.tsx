@@ -355,11 +355,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       <div className="relative flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-sm">
         {ribbonEl}
         {nameNode}
-        <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[11px] text-slate-600">
+        <div className="mt-0.5 flex flex-nowrap items-center justify-center gap-x-2.5 whitespace-nowrap text-[11px] text-slate-600">
           <span className="inline-flex min-w-0 items-center gap-0.5"><MapPin className="h-3 w-3 flex-shrink-0" /><span className="max-w-[80px] truncate">{seller.city}</span></span>
-          {seller.reviews > 0 && <>{dot}<span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><span className="font-semibold text-slate-700">{seller.rating.toFixed(1)}</span></span></>}
-          {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
-          {responseNode && <>{dot}{responseNode}</>}
+          {seller.reviews > 0 && <><span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><span className="font-semibold text-slate-700">{seller.rating.toFixed(1)}</span><span className="text-slate-400">({seller.reviews})</span></span></>}
+          {seller.hasTrustSEAL && <><span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
+          {responseNode && <>{responseNode}</>}
         </div>
         {payPill && <div className="mt-1.5 flex justify-center">{payPill}</div>}
 
