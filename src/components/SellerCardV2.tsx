@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Star, ShieldCheck, Check, Phone, Package } from 'lucide-react';
+import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp, Clock } from 'lucide-react';
 import type { SellerCard } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2).
@@ -9,6 +9,15 @@ interface SellerCardV2Props {
   seller: SellerCard;
   ribbon?: string;
   ribbonTone?: 'amber' | 'teal' | 'slate';
+}
+
+// Same formatting rules as the original card's highlight line (hidden under 5 buyers, capped at 100+).
+function formatHighlight(text: string): string | null {
+  const m = text.match(/^(\d+) buyers served in 6m$/);
+  if (!m) return text;
+  const n = parseInt(m[1], 10);
+  if (n < 5) return null;
+  return n > 100 ? '100+ buyers served in 6 months' : `${n} buyers served in 6 months`;
 }
 
 const RIBBON_TONE: Record<string, string> = {
@@ -37,6 +46,9 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
   const price = seller.askPrice ? null : seller.price;
   const cityBuyers = seller.cityBuyers6m ?? 0;
   const productName = seller.productName || seller.products?.[0]?.name || seller.spec;
+  const years = Math.round(seller.years);
+  const highlight = seller.matchHighlight ? formatHighlight(seller.matchHighlight) : null;
+  const HighlightIcon = seller.matchHighlight?.startsWith('Replies') ? Clock : TrendingUp;
   const initial = (seller.name || '?').trim().charAt(0).toUpperCase();
 
   function handleCall(e: React.MouseEvent) {
@@ -103,14 +115,23 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         <p className="mt-0.5 text-[15px] font-bold leading-snug text-slate-900 line-clamp-2">{productName}</p>
       </div>
 
-      {/* 5: product / range detail */}
-      <div className="mt-2.5 flex items-start gap-2.5 rounded-lg bg-sky-50 px-3 py-2.5 text-xs text-slate-600">
-        <Package className="mt-0.5 h-4 w-4 flex-shrink-0 text-sky-500" />
-        <p className="leading-snug">
-          {seller.years > 0 ? `${seller.years} yrs on IndiaMART. ` : ''}
-          Contact this seller for pricing and availability.
-        </p>
-      </div>
+      {/* 5: vintage + demand */}
+      {(years > 0 || highlight) && (
+        <div className="mt-2.5 space-y-1.5 rounded-lg bg-sky-50 px-3 py-2.5 text-xs text-slate-700">
+          {years > 0 && (
+            <p className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 flex-shrink-0 text-sky-500" />
+              {years} {years === 1 ? 'yr' : 'yrs'} on IndiaMART
+            </p>
+          )}
+          {highlight && (
+            <p className="flex items-center gap-2">
+              <HighlightIcon className="h-4 w-4 flex-shrink-0 text-sky-500" />
+              {highlight}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 6: payment protection (TrustSEAL sellers) */}
       {seller.hasPayProtected && (
@@ -123,14 +144,12 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
       {/* update for your request */}
       <div className="mt-3">
         <p className="text-[11px] text-slate-500">Update for your request</p>
-        <p className="mt-1 text-sm font-bold text-slate-900 truncate">{seller.name}</p>
         {price && (
-          <p className="mt-0.5 text-sm font-bold text-teal-700">
+          <p className="mt-0.5 text-base font-bold text-teal-700">
             {price}
             {seller.priceUnit ? <span className="text-xs font-semibold text-slate-500">{seller.priceUnit}</span> : null}
           </p>
         )}
-        <p className="mt-1 text-xs text-slate-500">Please contact the seller regarding this request.</p>
         {cityBuyers > 0 && (
           <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700">
             <MapPin className="h-3 w-3" />
