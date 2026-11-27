@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { MapPin, Star, ShieldCheck, Check, X, Minus, Phone, CalendarDays, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp } from 'lucide-react';
 import type { SellerCard, SellerProduct } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2). Centred, three tiers, no inner
 // divider lines (tiers are told apart by spacing and one light fill on the catalog):
 //   1. Seller introduction + facts (name -> paid URL, city, rating, vintage, TrustSEAL)
-//   2. Catalog glimpse: product image (with ‹ 1/10 › pager) on the left; name, how the product
-//      matches the buyer's requirement, specs and price on the right. All follow the active product.
+//   2. Catalog glimpse (own shade): product image on the left; name and specs on the right (specs the
+//      buyer asked for are highlighted); price and a dot scroller below. All follow the active product.
 //   3. Why connect (buyers served in 6 months / in <city>, payment protection)
 //   CTAs (Best Price, Call Now) side by side
 interface SellerCardV2Props {
@@ -28,43 +28,33 @@ function formatBuyersServed(text: string | undefined): string | null {
 
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-type SpecStatus = 'match' | 'diff' | 'missing' | 'other';
-interface SpecRow { key: string; value: string; status: SpecStatus; want?: string; }
-interface SpecView { rows: SpecRow[]; matched: number; total: number; }
+interface SpecRow { key: string; value: string; match: boolean; }
 
-// Compares the product's specs with what the buyer asked for:
-//   match   - product has the spec and its value covers the buyer's answer
-//   diff    - product has the spec with a different value
-//   missing - product doesn't list the spec
-// Buyer-requested specs come first (matches, then differences, then missing), then the rest.
-function buildSpecView(specs: Record<string, string> | undefined, buyer: { question: string; answer: string }[] | undefined): SpecView {
+// The product's own specs only. A spec whose value covers what the buyer picked (matched by spec
+// name first, else by value) is flagged and listed first; the rest keep their order, unhighlighted.
+function buildSpecView(specs: Record<string, string> | undefined, buyer: { question: string; answer: string }[] | undefined): SpecRow[] {
   const entries = Object.entries(specs ?? {});
-  const used = new Set<string>();
-  const req: SpecRow[] = [];
+  const matched = new Set<string>();
+  const hinted = new Set<string>();
   const valueCovers = (value: string, answer: string) => {
     const na = norm(answer);
     return value.split(';').some(tok => { const nt = norm(tok); return !!nt && !!na && (nt === na || na.includes(nt) || nt.includes(na)); });
   };
   for (const b of buyer ?? []) {
     const nq = norm(b.question);
-    const byKey = entries.find(([k]) => { const nk = norm(k); return !used.has(k) && !!nq && !!nk && (nq === nk || nq.includes(nk) || nk.includes(nq)); });
+    const byKey = entries.find(([k]) => { const nk = norm(k); return !matched.has(k) && !!nq && !!nk && (nq === nk || nq.includes(nk) || nk.includes(nq)); });
     if (byKey) {
-      used.add(byKey[0]);
-      req.push({ key: byKey[0], value: byKey[1], status: valueCovers(byKey[1], b.answer) ? 'match' : 'diff', want: b.answer });
+      if (valueCovers(byKey[1], b.answer)) matched.add(byKey[0]); else hinted.add(byKey[0]);
       continue;
     }
-    const byValue = entries.find(([k, v]) => !used.has(k) && valueCovers(v, b.answer));
-    if (byValue) {
-      used.add(byValue[0]);
-      req.push({ key: byValue[0], value: byValue[1], status: 'match', want: b.answer });
-    } else {
-      req.push({ key: b.question, value: 'Not specified', status: 'missing', want: b.answer });
-    }
+    const byValue = entries.find(([k, v]) => !matched.has(k) && valueCovers(v, b.answer));
+    if (byValue) matched.add(byValue[0]);
   }
-  const order: Record<SpecStatus, number> = { match: 0, diff: 1, missing: 2, other: 3 };
-  req.sort((a, b) => order[a.status] - order[b.status]);
-  const others: SpecRow[] = entries.filter(([k]) => !used.has(k)).map(([key, value]) => ({ key, value, status: 'other' as const }));
-  return { rows: [...req, ...others], matched: req.filter(r => r.status === 'match').length, total: req.length };
+  const rank = (k: string) => (matched.has(k) ? 0 : hinted.has(k) ? 1 : 2);
+  return entries
+    .map(([key, value], i) => ({ key, value, match: matched.has(key), r: rank(key), i }))
+    .sort((a, b) => a.r - b.r || a.i - b.i)
+    .map(({ key, value, match }) => ({ key, value, match }));
 }
 
 // BuyerMY payment safety page (opened from the green strip)
@@ -79,25 +69,12 @@ const RIBBON_TONE: Record<string, string> = {
   slate: 'bg-slate-600 text-white',
 };
 
-function SpecIcon({ status }: { status: SpecStatus }) {
-  if (status === 'match') return <Check className="mr-0.5 inline h-3 w-3 flex-shrink-0" strokeWidth={3} />;
-  if (status === 'diff') return <X className="mr-0.5 inline h-3 w-3 flex-shrink-0" strokeWidth={3} />;
-  if (status === 'missing') return <Minus className="mr-0.5 inline h-3 w-3 flex-shrink-0" strokeWidth={3} />;
-  return null;
-}
-
-const ROW_TONE: Record<SpecStatus, string> = {
-  match: 'rounded bg-teal-100/80 px-1 text-teal-800',
-  diff: 'rounded bg-amber-50 px-1 text-amber-800',
-  missing: 'px-1 italic text-slate-400',
-  other: 'px-1 text-slate-600',
-};
-
 export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', compact = false }: SellerCardV2Props) {
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [priceAsked, setPriceAsked] = useState(false);
   const [active, setActive] = useState(0);
+  const touchX = useRef<number | null>(null);
 
   const years = Math.round(seller.years);
   const buyersServed = formatBuyersServed(seller.matchHighlight);
@@ -116,19 +93,12 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
   const idx = Math.min(active, items.length - 1);
   const item = items[idx];
   const hasPrice = item.price && item.price !== 'Ask for price';
-  const view = buildSpecView(item.specs, seller.buyerSpecs);
-  const specRows = view.rows.slice(0, SPEC_ROWS);
+  const specRows = buildSpecView(item.specs, seller.buyerSpecs).slice(0, SPEC_ROWS);
   const place = seller.buyerCity || 'your city';
   // "X buyers served in 6 months, Y in <buyer city>"
   const servedLine = buyersServed
     ? <>{buyersServed}{cityBuyers > 0 && <>, <span className="font-semibold text-teal-700">{cityBuyers} in {place}</span></>}</>
     : cityBuyers > 0 ? <span className="font-semibold text-teal-700">{cityBuyers} {cityBuyers === 1 ? 'buyer' : 'buyers'} served in {place}</span> : null;
-  const summaryTone = view.total === 0 ? '' : view.matched === view.total ? 'text-teal-700' : view.matched === 0 ? 'text-slate-500' : 'text-amber-700';
-
-  function go(delta: number, e: React.MouseEvent) {
-    e.stopPropagation();
-    setActive((idx + delta + items.length) % items.length);
-  }
 
   function handleCall(e: React.MouseEvent) {
     e.stopPropagation();
@@ -150,14 +120,31 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
     ? <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={item.name} className={className}>{children}</a>
     : <span className={className}>{children}</span>;
 
-  // ‹ 1/10 › pager that sits on the product image, so it is clearly the product that changes
-  const pager = items.length > 1 && (
-    <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 items-center rounded-full bg-slate-900/75 text-white">
-      <button type="button" aria-label="Previous product" onClick={e => go(-1, e)} className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-white/20"><ChevronLeft className="h-3.5 w-3.5" /></button>
-      <span className="px-0.5 text-[10px] font-semibold tabular-nums">{idx + 1}/{items.length}</span>
-      <button type="button" aria-label="Next product" onClick={e => go(1, e)} className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-white/20"><ChevronRight className="h-3.5 w-3.5" /></button>
+  // Dot scroller for the product carousel (tap a dot, or swipe the product section)
+  const dots = items.length > 1 && (
+    <div className="flex items-center gap-1" role="tablist" aria-label="Products">
+      {items.map((_, n) => (
+        <button
+          key={n}
+          type="button"
+          role="tab"
+          aria-selected={n === idx}
+          aria-label={`Product ${n + 1} of ${items.length}`}
+          onClick={e => { e.stopPropagation(); setActive(n); }}
+          className={`h-1.5 rounded-full transition-all ${n === idx ? 'w-4 bg-teal-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}`}
+        />
+      ))}
     </div>
   );
+  const swipe = {
+    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (touchX.current == null || items.length < 2) return;
+      const dx = e.changedTouches[0].clientX - touchX.current;
+      touchX.current = null;
+      if (Math.abs(dx) > 40) setActive((idx + (dx < 0 ? 1 : -1) + items.length) % items.length);
+    },
+  };
 
   const ribbonEl = ribbon && (
     <span className={`absolute -top-2 left-3 rounded px-2 py-0.5 text-[10px] font-bold ${RIBBON_TONE[ribbonTone]}`}>
@@ -221,21 +208,23 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
           {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
         </div>
 
-        <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-50 p-1.5">
-          <div className="relative h-14 w-14 flex-shrink-0">
-            {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
-            {pager}
+        <div {...swipe} className="mt-2.5 rounded-lg bg-slate-100/80 p-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="h-14 w-14 flex-shrink-0">
+              {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
+            </div>
+            <div className="min-w-0 flex-1 text-left">
+              <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
+              <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                {specRows.length === 0 ? '\u00a0' : specRows.slice(0, 2).map((r, n) => (
+                  <span key={r.key} className={r.match ? 'rounded bg-teal-100 px-1 font-semibold text-teal-800' : ''}>{n > 0 ? ' ' : ''}{r.match ? '✓ ' : ''}{r.key}: {r.value}</span>
+                ))}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1 text-left">
-            <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
-            <p className="truncate text-[10px]">
-              {view.rows.length === 0 ? ' ' : view.rows.slice(0, 2).map((r, n) => (
-                <span key={r.key} className={r.status === 'match' ? 'font-semibold text-teal-700' : r.status === 'diff' ? 'text-amber-700' : 'text-slate-500'}>
-                  {n > 0 ? ' · ' : ''}{r.status === 'match' ? '✓ ' : r.status === 'diff' ? '✗ ' : ''}{r.key}: {r.value}
-                </span>
-              ))}
-            </p>
-            <p className="text-sm font-bold text-teal-700">{priceNode}</p>
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
+            {dots}
           </div>
         </div>
 
@@ -277,26 +266,27 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
       </div>
 
-      {/* 2. Catalog glimpse: image + pager left; name, requirement match, specs, price right */}
-      <div className="mt-3 flex items-start gap-2.5 rounded-lg bg-slate-50 p-2.5 text-left">
-        <div className="relative h-[88px] w-[88px] flex-shrink-0">
-          {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
-          {pager}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 min-h-[30px] text-xs font-semibold leading-snug text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline underline-offset-2' : '')}</p>
-          <p className={`mt-0.5 min-h-[16px] text-[11px] font-semibold ${summaryTone}`}>
-            {view.total > 0 && `${view.matched} of ${view.total} ${view.total === 1 ? 'requirement matches' : 'requirements match'}`}
-          </p>
-          <div className="min-h-[52px] space-y-0.5 text-[11px] leading-snug">
-            {specRows.map(r => (
-              <p key={r.key} title={r.want ? `You chose: ${r.want}` : undefined} className={`truncate ${ROW_TONE[r.status]}`}>
-                <SpecIcon status={r.status} />
-                <span className={r.status === 'other' ? 'text-slate-400' : 'opacity-80'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
-              </p>
-            ))}
+      {/* 2. Catalog glimpse: image left; name + specs right; price and dot scroller below */}
+      <div {...swipe} className="mt-3.5 rounded-xl bg-slate-100/80 p-3 text-left">
+        <div className="flex items-start gap-3">
+          <div className="h-[84px] w-[84px] flex-shrink-0">
+            {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-lg bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
           </div>
-          <p className="mt-1 text-base font-bold leading-tight text-teal-700">{priceNode}</p>
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-2 min-h-[32px] text-xs font-semibold leading-snug text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline underline-offset-2' : '')}</p>
+            <div className="mt-1.5 min-h-[58px] space-y-1 text-[11px] leading-snug">
+              {specRows.map(r => (
+                <p key={r.key} title={r.match ? 'Matches your requirement' : undefined} className={`truncate ${r.match ? '-mx-1 rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
+                  {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
+                  <span className={r.match ? 'opacity-80' : 'text-slate-400'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 flex min-h-[24px] items-center justify-between gap-2">
+          <p className="text-base font-bold leading-tight text-teal-700">{priceNode}</p>
+          {dots}
         </div>
       </div>
 
