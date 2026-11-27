@@ -1,23 +1,27 @@
 import { useState } from 'react';
-import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp, Clock } from 'lucide-react';
+import { MapPin, Star, ShieldCheck, Check, Phone, CalendarDays, TrendingUp, Package } from 'lucide-react';
 import type { SellerCard } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2).
-// Sections: seller name + logo, location, trust signals, "Supplier for" product,
-// product detail, payment protection, request update, Call Now / View Product CTAs.
+// Every card has the same sections in the same order so rows line up across a grid:
+//   header (logo, name -> paid URL, city, vintage + rating, TrustSEAL)
+//   stats (products listed, buyers served in 6m, buyers served in your city)
+//   payment protection slot
+//   price
+//   CTAs (Best Price, Call Now)
 interface SellerCardV2Props {
   seller: SellerCard;
   ribbon?: string;
   ribbonTone?: 'amber' | 'teal' | 'slate';
 }
 
-// Same rules as the original card's highlight line (hidden under 5 buyers), but shows the actual count (no 100+ cap).
-function formatHighlight(text: string): string | null {
+// Same rule as the original card's highlight line (hidden under 5 buyers), but shows the actual count.
+function formatBuyersServed(text: string | undefined): string | null {
+  if (!text) return null;
   const m = text.match(/^(\d+) buyers served in 6m$/);
-  if (!m) return text;
+  if (!m) return null;
   const n = parseInt(m[1], 10);
-  if (n < 5) return null;
-  return `${n} buyers served in 6 months`;
+  return n < 5 ? null : `${n} buyers served in 6 months`;
 }
 
 const RIBBON_TONE: Record<string, string> = {
@@ -32,7 +36,7 @@ function Stars({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map(i => (
         <Star
           key={i}
-          className={`w-3 h-3 ${rating >= i - 0.25 ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`}
+          className={`h-3 w-3 ${rating >= i - 0.25 ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`}
         />
       ))}
     </span>
@@ -44,12 +48,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
   const [copied, setCopied] = useState(false);
   const [priceAsked, setPriceAsked] = useState(false);
 
-  const price = seller.askPrice ? null : seller.price;
-  const cityBuyers = seller.cityBuyers6m ?? 0;
-  const productName = seller.productName || seller.products?.[0]?.name || seller.spec;
   const years = Math.round(seller.years);
-  const highlight = seller.matchHighlight ? formatHighlight(seller.matchHighlight) : null;
-  const HighlightIcon = seller.matchHighlight?.startsWith('Replies') ? Clock : TrendingUp;
+  const buyersServed = formatBuyersServed(seller.matchHighlight);
+  const cityBuyers = seller.cityBuyers6m ?? 0;
+  const productCount = seller.productCount ?? 0;
+  const price = seller.askPrice ? null : seller.price;
   const initial = (seller.name || '?').trim().charAt(0).toUpperCase();
 
   function handleCall(e: React.MouseEvent) {
@@ -63,6 +66,8 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
     }
   }
 
+  const nameClass = 'text-[15px] font-bold leading-tight text-slate-900 line-clamp-2';
+
   return (
     <div className="relative flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
       {ribbon && (
@@ -71,9 +76,9 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         </span>
       )}
 
-      {/* 1 + 2: logo (product image), seller name, location */}
-      <div className="flex items-start gap-3">
-        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center">
+      {/* Header: logo (product image), name, city */}
+      <div className="flex min-h-[56px] items-start gap-3">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
           {seller.image ? (
             <img src={seller.image} alt="" className="h-full w-full object-cover" loading="lazy" />
           ) : (
@@ -81,7 +86,19 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-bold leading-tight text-slate-900 line-clamp-2">{seller.name}</h3>
+          {seller.paidUrl ? (
+            <a
+              href={seller.paidUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className={`${nameClass} block hover:text-teal-700 hover:underline underline-offset-2`}
+            >
+              {seller.name}
+            </a>
+          ) : (
+            <h3 className={nameClass}>{seller.name}</h3>
+          )}
           <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span className="truncate">{seller.city}</span>
@@ -89,78 +106,74 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         </div>
       </div>
 
-      {/* 3: trust signals */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-700">
-        {seller.hasGST && (
-          <span className="inline-flex items-center gap-1 font-semibold">
-            GST <Check className="h-3.5 w-3.5 rounded-sm bg-emerald-600 p-px text-white" strokeWidth={3} />
-          </span>
-        )}
+      {/* Trust row: vintage, rating, TrustSEAL — fixed height so every card lines up */}
+      <div className="mt-2.5 flex min-h-[40px] flex-col justify-center gap-1 text-xs text-slate-700">
+        <div className="flex items-center gap-3">
+          {years > 0 && (
+            <span className="inline-flex items-center gap-1 font-semibold">
+              <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+              {years} {years === 1 ? 'yr' : 'yrs'}
+            </span>
+          )}
+          {seller.reviews > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Stars rating={seller.rating} />
+              <span className="font-semibold">{seller.rating.toFixed(1)}</span>
+              <span className="text-slate-400">({seller.reviews})</span>
+            </span>
+          )}
+        </div>
         {seller.hasTrustSEAL && (
           <span className="inline-flex items-center gap-1 font-semibold">
             <ShieldCheck className="h-3.5 w-3.5 text-amber-500" /> TrustSEAL
           </span>
         )}
-        {seller.reviews > 0 && (
-          <span className="inline-flex w-full items-center gap-1">
-            <Stars rating={seller.rating} />
-            <span className="font-semibold">{seller.rating.toFixed(1)}</span>
-            <span className="text-slate-400">({seller.reviews})</span>
-          </span>
+      </div>
+
+      {/* Stats: products listed, buyers served */}
+      <div className="mt-2.5 flex min-h-[84px] flex-col justify-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-700">
+        {productCount > 0 && (
+          <p className="flex items-center gap-2">
+            <Package className="h-4 w-4 flex-shrink-0 text-slate-500" />
+            {productCount} {productCount === 1 ? 'product' : 'products'} listed
+          </p>
         )}
-      </div>
-
-      {/* 4: supplier for */}
-      <div className="mt-3 border-t border-slate-100 pt-3">
-        <p className="text-[11px] text-slate-500">Supplier for</p>
-        <p className="mt-0.5 text-[15px] font-bold leading-snug text-slate-900 line-clamp-2">{productName}</p>
-      </div>
-
-      {/* 5: vintage + demand */}
-      {(years > 0 || highlight) && (
-        <div className="mt-2.5 space-y-1.5 rounded-lg bg-sky-50 px-3 py-2.5 text-xs text-slate-700">
-          {years > 0 && (
-            <p className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 flex-shrink-0 text-sky-500" />
-              {years} {years === 1 ? 'yr' : 'yrs'} on IndiaMART
-            </p>
-          )}
-          {highlight && (
-            <p className="flex items-center gap-2">
-              <HighlightIcon className="h-4 w-4 flex-shrink-0 text-sky-500" />
-              {highlight}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* 6: payment protection (TrustSEAL sellers) */}
-      {seller.hasPayProtected && (
-        <div className="mt-2.5 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
-          <ShieldCheck className="h-4 w-4 flex-shrink-0" />
-          Covered up to ₹5 Lac Payment Protection*
-        </div>
-      )}
-
-      {/* update for your request */}
-      <div className="mt-3">
-        <p className="text-[11px] text-slate-500">Update for your request</p>
-        {price && (
-          <p className="mt-0.5 text-base font-bold text-teal-700">
-            {price}
-            {seller.priceUnit ? <span className="text-xs font-semibold text-slate-500">{seller.priceUnit}</span> : null}
+        {buyersServed && (
+          <p className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 flex-shrink-0 text-slate-500" />
+            {buyersServed}
           </p>
         )}
         {cityBuyers > 0 && (
-          <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700">
-            <MapPin className="h-3 w-3" />
+          <p className="flex items-center gap-2 font-semibold text-teal-700">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
             {cityBuyers} {cityBuyers === 1 ? 'buyer' : 'buyers'} served in your city
           </p>
         )}
       </div>
 
+      {/* Payment protection slot (empty space when the seller doesn't have it, to keep rows aligned) */}
+      <div className="mt-2.5 min-h-[48px]">
+        {seller.hasPayProtected && (
+          <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+            <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+            Covered up to ₹5 Lac Payment Protection*
+          </div>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className="mt-2.5 min-h-[28px] border-t border-slate-100 pt-2.5">
+        {price && (
+          <p className="text-base font-bold text-teal-700">
+            {price}
+            {seller.priceUnit ? <span className="text-xs font-semibold text-slate-500">{seller.priceUnit}</span> : null}
+          </p>
+        )}
+      </div>
+
       {/* CTAs: Best Price (primary) + Call Now */}
-      <div className="mt-auto flex flex-col gap-2 pt-3.5">
+      <div className="mt-auto flex flex-col gap-2 pt-3">
         <button
           type="button"
           onClick={e => { e.stopPropagation(); setPriceAsked(true); }}

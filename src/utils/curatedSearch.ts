@@ -57,7 +57,7 @@ export interface CuratedSeller {
   supplier_rating?: number | null;
   member_since_str?: string | null;
   pns_success_ratio?: number;
-  p2_breakdown?: { bl_mcat_6m?: number; bl_city?: number; bl_mcat_city_6m?: number; [key: string]: unknown };
+  p2_breakdown?: { bl_mcat_6m?: number; bl_city?: number; productcount?: number; bl_mcat_city_6m?: number; [key: string]: unknown };
   // Other products this seller lists in the buyer's category (excluding or including the
   // primary one) — field names are the expected shape; confirm against the windmill output.
   products?: CuratedSellerProduct[];

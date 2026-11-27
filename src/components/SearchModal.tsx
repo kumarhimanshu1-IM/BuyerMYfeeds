@@ -63,6 +63,10 @@ export interface SellerCard {
   cityBuyers6m?: number;
   // Title of the seller's primary product (API sellers); shown as "Supplier for" in the v2 card
   productName?: string;
+  // Seller's product page (opened from the company name in the v2 card)
+  paidUrl?: string;
+  // Number of this seller's products listed in the buyer's MCAT (p2_breakdown.productcount)
+  productCount?: number;
 }
 
 interface FilterSection {
@@ -345,6 +349,11 @@ function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
         : undefined,
       cityBuyers6m: cityBuyers ?? undefined,
       productName: primaryTitle,
+      paidUrl: s.paid_url || s.title_url || undefined,
+      productCount: (() => {
+        const n = Number((s.p2_breakdown as { productcount?: unknown } | undefined)?.productcount);
+        return Number.isFinite(n) && n > 0 ? n : (s.products?.length || undefined);
+      })(),
       askPrice: !s.price_formatted,
       phone: undefined,
       distance: s.dist_km ?? 0,
