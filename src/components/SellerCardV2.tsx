@@ -42,6 +42,7 @@ function Stars({ rating }: { rating: number }) {
 export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: SellerCardV2Props) {
   const [callRevealed, setCallRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [priceAsked, setPriceAsked] = useState(false);
 
   const price = seller.askPrice ? null : seller.price;
   const cityBuyers = seller.cityBuyers6m ?? 0;
@@ -158,25 +159,29 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
         )}
       </div>
 
-      {/* 7 + 8: CTAs */}
+      {/* CTAs: Best Price (primary) + Call Now */}
       <div className="mt-auto flex flex-col gap-2 pt-3.5">
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); setPriceAsked(true); }}
+          disabled={priceAsked}
+          className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold text-white transition-colors ${
+            priceAsked ? 'bg-emerald-600' : 'bg-teal-600 hover:bg-teal-700'
+          }`}
+        >
+          {priceAsked ? <><Check className="h-4 w-4" strokeWidth={3} />Price requested</> : 'Best Price'}
+        </button>
         <button
           type="button"
           onClick={handleCall}
           className={`flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-semibold transition-colors ${
             callRevealed
               ? `border-transparent text-white ${copied ? 'bg-emerald-600' : 'bg-slate-900 hover:bg-slate-800'}`
-              : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+              : 'border-teal-600 bg-white text-teal-700 hover:bg-teal-50'
           }`}
         >
           <Phone className="h-4 w-4" />
           {callRevealed ? (copied ? 'Copied' : seller.phone ?? 'Call Now') : 'Call Now'}
-        </button>
-        <button
-          type="button"
-          className="w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-semibold text-[#2e3192] hover:bg-slate-50 transition-colors"
-        >
-          View Product
         </button>
       </div>
     </div>
