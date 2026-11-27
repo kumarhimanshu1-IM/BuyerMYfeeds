@@ -78,7 +78,7 @@ export interface SellerCard {
   // surface and highlight matching product specs and to name the city in the buyers-served line
   buyerSpecs?: { question: string; answer: string }[];
   buyerCity?: string;
-  // Share of this seller's PNS calls that connected, as a whole percent (pns_success_ratio)
+  // Share of this seller's PNS calls that connected, as a whole percent (pns_success)
   responseRate?: number;
 }
 
@@ -390,9 +390,9 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string, b
       buyerSpecs,
       buyerCity,
       responseRate: (() => {
-        const v = Number(s.pns_success_ratio ?? s.pns_success_rate);
+        const v = Number(s.pns_success);
         if (!Number.isFinite(v) || v <= 0) return undefined;
-        return Math.round(v <= 1 ? v * 100 : v);
+        return Math.min(100, Math.round(v));
       })(),
       paidUrl: s.paid_url || s.title_url || undefined,
       productCount: (() => {

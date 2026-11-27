@@ -56,8 +56,8 @@ export interface CuratedSeller {
   price_formatted?: string;
   supplier_rating?: number | null;
   member_since_str?: string | null;
-  pns_success_ratio?: number;
-  pns_success_rate?: number;
+  // % of the seller's PNS calls that connected (0-100), e.g. 88.15
+  pns_success?: number;
   p2_breakdown?: { bl_mcat_6m?: number; bl_city?: number; productcount?: number; bl_mcat_city_6m?: number; [key: string]: unknown };
   // Other products this seller lists in the buyer's category (excluding or including the
   // primary one) — field names are the expected shape; confirm against the windmill output.
