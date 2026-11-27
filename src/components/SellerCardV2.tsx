@@ -408,11 +408,12 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         <MapPin className="h-3 w-3 flex-shrink-0" />
         <span className="truncate">{seller.city}</span>
       </p>
-      <div className="mt-2 flex min-h-5 flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[11px] text-slate-700">
+      <div className="mt-2 flex h-5 flex-nowrap items-center justify-center gap-x-2.5 whitespace-nowrap text-[11px] text-slate-700">
         {seller.reviews > 0 && (
           <span className="inline-flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
             <span className="font-semibold">{seller.rating.toFixed(1)}</span>
+            <span className="text-slate-400">({seller.reviews})</span>
           </span>
         )}
         {seller.hasTrustSEAL && <><span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
