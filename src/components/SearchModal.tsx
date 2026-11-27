@@ -355,7 +355,7 @@ function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
         return Number.isFinite(n) && n > 0 ? n : (s.products?.length || undefined);
       })(),
       askPrice: !s.price_formatted,
-      phone: undefined,
+      phone: s.pns || undefined, // seller contact, already in 0xxxxxxxxxx format
       distance: s.dist_km ?? 0,
       matchHighlight: (() => {
         const blMcat6m = extractBlMcat6m(s);

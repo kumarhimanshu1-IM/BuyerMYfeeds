@@ -24,8 +24,8 @@ function formatBuyersServed(text: string | undefined): string | null {
   return n < 5 ? null : `${n} buyers served in 6 months`;
 }
 
-// Payment Protection Plan terms page (opened from the green strip)
-const PAYMENT_PROTECTION_URL = 'https://help.indiamart.com/knowledge-base/payment-protection-plan';
+// BuyerMY payment safety page (opened from the green strip)
+const PAYMENT_PROTECTION_URL = 'https://buyer.indiamart.com/?utm_source=Desktop_BuyerMY&tabname=paymentsafety';
 
 const RIBBON_TONE: Record<string, string> = {
   amber: 'bg-amber-500 text-white',
