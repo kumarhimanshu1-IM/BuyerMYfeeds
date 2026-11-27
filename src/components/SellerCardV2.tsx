@@ -335,22 +335,36 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         {payPill && <div className="mt-1.5 flex justify-center">{payPill}</div>}
 
         <div {...swipe} className="relative mt-3 rounded-lg bg-slate-100/80 p-2.5">
-          {countChip}
-          <div className="flex items-center gap-2.5">
+          {items.length > 1 && (
+            <button
+              type="button"
+              aria-label={`View all ${items.length} products`}
+              onClick={e => { e.stopPropagation(); setPanelOpen(true); }}
+              className="absolute -top-2 right-3 rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-sm"
+            >
+              {idx + 1}/{items.length} ›
+            </button>
+          )}
+          <div className="flex items-start gap-2.5">
             <div className="h-14 w-14 flex-shrink-0">
               {productLink(<img key={idx} src={item.image} alt="" className="h-full w-full rounded-md bg-white object-contain" loading="lazy" />, 'block h-full w-full')}
             </div>
             <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-xs font-semibold text-slate-800">{productLink(item.name, item.url ? 'hover:text-teal-700 hover:underline' : '')}</p>
-              <p className="mt-0.5 truncate text-[10px] text-slate-500">
-                {specRows.length === 0 ? '\u00a0' : specRows.slice(0, 2).map((r, n) => (
-                  <span key={r.key} className={r.match ? 'rounded bg-teal-100 px-1 font-semibold text-teal-800' : ''}>{n > 0 ? ' ' : ''}{r.match ? '✓ ' : ''}{r.key}: {r.value}</span>
+              <div className="mt-1 space-y-1 text-[11px] leading-snug">
+                {specRows.map(r => (
+                  <p key={r.key} className={`truncate ${r.match ? '-mx-1 rounded bg-teal-100 px-1 text-teal-800' : 'text-slate-600'}`}>
+                    {r.match && <Check className="mr-0.5 inline h-3 w-3" strokeWidth={3} />}
+                    <span className={r.match ? 'opacity-80' : 'text-slate-400'}>{r.key}:</span> <span className="font-medium">{r.value}</span>
+                  </p>
                 ))}
-              </p>
+              </div>
             </div>
           </div>
-          <p className="mt-2 text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
-          {thumbs && <div className="mt-2.5">{thumbs}</div>}
+          <div className="mt-2.5 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
+            {items.length > 1 && <span className="text-[10px] text-slate-400">Swipe for more ›</span>}
+          </div>
         </div>
 
         {servedLine && (
