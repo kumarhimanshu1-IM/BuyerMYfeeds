@@ -37,6 +37,8 @@ export interface SellerProduct {
   // Catalog specs (label -> value) and product page, used by the v2 card carousel
   specs?: Record<string, string>;
   url?: string;
+  // Catalog product with no real image (missing or the IndiaMART placeholder); v2 card skips these
+  noImage?: boolean;
 }
 
 export interface SellerCard {
@@ -76,6 +78,8 @@ export interface SellerCard {
   // surface and highlight matching product specs and to name the city in the buyers-served line
   buyerSpecs?: { question: string; answer: string }[];
   buyerCity?: string;
+  // Share of this seller's PNS calls that connected, as a whole percent (pns_success_ratio)
+  responseRate?: number;
 }
 
 interface FilterSection {
@@ -343,6 +347,7 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string, b
           price: Number.isFinite(n) && n > 0 ? `₹ ${n.toLocaleString('en-IN')}` : 'Ask for price',
           priceUnit: p.fob_price_unit ? `/${p.fob_price_unit}` : '',
           image: p.image || primaryImage,
+          noImage: !p.image || /default-image|add-image|no-?image/i.test(p.image),
           specs: p.specifications && Object.keys(p.specifications).length ? p.specifications : undefined,
           url: p.title_url || undefined,
         };
@@ -384,6 +389,11 @@ function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string, b
       catalog: catalogProducts.length > 0 ? catalogProducts : undefined,
       buyerSpecs,
       buyerCity,
+      responseRate: (() => {
+        const v = Number(s.pns_success_ratio ?? s.pns_success_rate);
+        if (!Number.isFinite(v) || v <= 0) return undefined;
+        return Math.round(v <= 1 ? v * 100 : v);
+      })(),
       paidUrl: s.paid_url || s.title_url || undefined,
       productCount: (() => {
         const n = Number((s.p2_breakdown as { productcount?: unknown } | undefined)?.productcount);

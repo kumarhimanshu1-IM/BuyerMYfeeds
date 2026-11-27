@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Star, ShieldCheck, Check, Phone, TrendingUp, X } from 'lucide-react';
+import { MapPin, Star, ShieldCheck, Check, Phone, MessageSquare, TrendingUp, X } from 'lucide-react';
 import type { SellerCard, SellerProduct } from './SearchModal';
 
 // Variant of the final-result seller card (enabled with ?card=v2). Centred, three tiers, no inner
@@ -158,9 +158,14 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
   const buyersServed = formatBuyersServed(seller.matchHighlight);
   const cityBuyers = seller.cityBuyers6m ?? 0;
 
-  // Carousel items: the seller's catalog in the buyer's MCAT, else the single primary product
-  const items: SellerProduct[] = seller.catalog && seller.catalog.length > 0
-    ? seller.catalog
+  // Carousel items: the seller's catalog in the buyer's MCAT (products without an image skipped),
+  // best match to the buyer's specs first; else the single primary product
+  const catalogItems = (seller.catalog ?? []).filter(p => !p.noImage);
+  const items: SellerProduct[] = catalogItems.length > 0
+    ? catalogItems
+        .map((p, i) => ({ p, i, m: buildSpecView(p.specs, seller.buyerSpecs).filter(r => r.match).length }))
+        .sort((a, b) => b.m - a.m || a.i - b.i)
+        .map(x => x.p)
     : [{
         name: seller.productName || seller.name,
         price: seller.askPrice ? 'Ask for price' : seller.price,
@@ -239,6 +244,22 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       )}
     </div>
   );
+  // Dot scroller (mobile): tap a dot or swipe the product section
+  const dots = items.length > 1 && (
+    <div className="flex items-center justify-center gap-1" role="tablist" aria-label="Products">
+      {items.map((_, n) => (
+        <button
+          key={n}
+          type="button"
+          role="tab"
+          aria-selected={n === idx}
+          aria-label={`Product ${n + 1} of ${items.length}`}
+          onClick={e => { e.stopPropagation(); select(n); }}
+          className={`h-1.5 rounded-full transition-all ${n === idx ? 'w-4 bg-teal-600' : 'w-1.5 bg-slate-300'}`}
+        />
+      ))}
+    </div>
+  );
   const swipe = {
     onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
     onTouchEnd: (e: React.TouchEvent) => {
@@ -258,6 +279,13 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       onClose={() => setPanelOpen(false)}
     />
   );
+
+  const responseNode = seller.responseRate ? (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      <Phone className="h-3 w-3 text-teal-600" />
+      <span className="font-semibold text-slate-700">{seller.responseRate}% response rate</span>
+    </span>
+  ) : null;
 
   const payPill = seller.hasTrustSEAL && (
     <a
@@ -301,7 +329,7 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         priceAsked ? 'bg-emerald-600' : 'bg-teal-600 hover:bg-teal-700'
       }`}
     >
-      {priceAsked ? <><Check className="h-4 w-4" strokeWidth={3} />Requested</> : 'Best Price'}
+      {priceAsked ? <><Check className="h-4 w-4" strokeWidth={3} />Requested</> : <><MessageSquare className="h-4 w-4" />Best Price</>}
     </button>
   );
 
@@ -327,24 +355,15 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
       <div className="relative flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-sm">
         {ribbonEl}
         {nameNode}
-        <div className="mt-0.5 flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] text-slate-600">
+        <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[11px] text-slate-600">
           <span className="inline-flex min-w-0 items-center gap-0.5"><MapPin className="h-3 w-3 flex-shrink-0" /><span className="max-w-[80px] truncate">{seller.city}</span></span>
           {seller.reviews > 0 && <>{dot}<span className="inline-flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><span className="font-semibold text-slate-700">{seller.rating.toFixed(1)}</span></span></>}
           {seller.hasTrustSEAL && <>{dot}<span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><ShieldCheck className="h-3 w-3 text-amber-500" />TrustSEAL</span></>}
+          {responseNode && <>{dot}{responseNode}</>}
         </div>
         {payPill && <div className="mt-1.5 flex justify-center">{payPill}</div>}
 
         <div {...swipe} className="relative mt-3 rounded-lg bg-slate-100/80 p-2.5">
-          {items.length > 1 && (
-            <button
-              type="button"
-              aria-label={`View all ${items.length} products`}
-              onClick={e => { e.stopPropagation(); setPanelOpen(true); }}
-              className="absolute -top-2 right-3 rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-sm"
-            >
-              {idx + 1}/{items.length} ›
-            </button>
-          )}
           <div className="overflow-hidden">
             <div key={idx} className={`flex items-stretch gap-3 ${animClass}`}>
               <div className="min-h-[88px] w-24 flex-shrink-0">
@@ -360,13 +379,11 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
                     </p>
                   ))}
                 </div>
-                <div className="mt-1.5 flex items-center justify-between gap-2">
-                  <p className="text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
-                  {items.length > 1 && <span className="text-[10px] text-slate-400">Swipe ›</span>}
-                </div>
+                <p className="mt-1.5 text-sm font-bold leading-tight text-teal-700">{priceNode}</p>
               </div>
             </div>
           </div>
+          {dots && <div className="mt-2.5">{dots}</div>}
         </div>
 
         {servedLine && (
@@ -391,15 +408,15 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal', comp
         <MapPin className="h-3 w-3 flex-shrink-0" />
         <span className="truncate">{seller.city}</span>
       </p>
-      <div className="mt-2 flex h-5 items-center justify-center gap-2 whitespace-nowrap text-[11px] text-slate-700">
+      <div className="mt-2 flex min-h-5 flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[11px] text-slate-700">
         {seller.reviews > 0 && (
           <span className="inline-flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
             <span className="font-semibold">{seller.rating.toFixed(1)}</span>
-            <span className="text-slate-400">({seller.reviews})</span>
           </span>
         )}
-        {seller.hasTrustSEAL && <>{seller.reviews > 0 && dot}<span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
+        {seller.hasTrustSEAL && <><span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-amber-500" /><span className="font-semibold text-amber-700">TrustSEAL</span></span></>}
+        {responseNode}
       </div>
       <div className="mt-1.5 flex h-5 justify-center">{payPill}</div>
 
