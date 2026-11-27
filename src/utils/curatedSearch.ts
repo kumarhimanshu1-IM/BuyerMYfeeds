@@ -61,8 +61,26 @@ export interface CuratedSeller {
   // Other products this seller lists in the buyer's category (excluding or including the
   // primary one) — field names are the expected shape; confirm against the windmill output.
   products?: CuratedSellerProduct[];
+  // Products the seller lists, grouped by MCAT (the buyer's MCAT plus related ones)
+  mcat_products?: CuratedMcatProducts[];
   // Buyers from the buyer's own city served in the last 6 months, if sent top-level
   bl_mcat_city_6m?: number | string;
+}
+
+// Real shape of the pipeline's per-MCAT product lists (final_ranked_sellers[].mcat_products)
+export interface CuratedMcatProduct {
+  name?: string;
+  image?: string;
+  fob_price?: string | number;
+  fob_price_unit?: string;
+  title_url?: string;
+  display_id?: string;
+  specifications?: Record<string, string>;
+}
+
+export interface CuratedMcatProducts {
+  mcat_id?: string | number;
+  products?: CuratedMcatProduct[];
 }
 
 export interface CuratedSellerProduct {

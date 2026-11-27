@@ -308,7 +308,7 @@ function extractCityBuyers6m(s: CuratedSeller): number | null {
 // the SellerCard shape the results grid already renders — so cards stay
 // API-powered once Find Best Match is clicked, instead of reusing the
 // hardcoded SELLERS demo list.
-function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
+function mapCuratedSellersToCards(list: CuratedSeller[], buyerMcatId?: string): SellerCard[] {
   return list.map((s, idx) => {
     const custTypeWt = Number(s.CustTypeWt);
     const rating = typeof s.supplier_rating === 'number'
@@ -321,14 +321,33 @@ function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
     const primaryImage = s.image || 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&cs=tinysrgb&w=400';
     // Primary product first, then any other category products the API returns (deduped by title)
     const primaryTitle = s.title ?? s.original_title ?? '';
-    const extraProducts: SellerProduct[] = (s.products ?? [])
-      .filter(p => p.title && p.title !== primaryTitle)
+    // Products the seller lists in the buyer's MCAT (pipeline field: mcat_products)
+    const mcatEntry = (s.mcat_products ?? []).find(e => String(e.mcat_id) === String(buyerMcatId)) ?? s.mcat_products?.[0];
+    const catalogProducts: SellerProduct[] = (mcatEntry?.products ?? [])
+      .filter(p => p.name)
+      .map(p => {
+        const n = Number(p.fob_price);
+        return {
+          name: p.name ?? '',
+          price: Number.isFinite(n) && n > 0 ? `₹ ${n.toLocaleString('en-IN')}` : 'Ask for price',
+          priceUnit: p.fob_price_unit ? `/${p.fob_price_unit}` : '',
+          image: p.image || primaryImage,
+        };
+      });
+    const legacyProducts: SellerProduct[] = (s.products ?? [])
+      .filter(p => p.title)
       .map(p => ({
         name: p.title ?? '',
         price: p.price_formatted ?? 'Ask for price',
         priceUnit: '',
         image: p.image || primaryImage,
       }));
+    const seenNames = new Set<string>([primaryTitle]);
+    const extraProducts: SellerProduct[] = [...legacyProducts, ...catalogProducts].filter(p => {
+      if (seenNames.has(p.name)) return false;
+      seenNames.add(p.name);
+      return true;
+    });
     const cityBuyers = extractCityBuyers6m(s);
     return {
       id: idx + 1,
@@ -352,6 +371,7 @@ function mapCuratedSellersToCards(list: CuratedSeller[]): SellerCard[] {
       paidUrl: s.paid_url || s.title_url || undefined,
       productCount: (() => {
         const n = Number((s.p2_breakdown as { productcount?: unknown } | undefined)?.productcount);
+        if (mcatEntry?.products?.length) return mcatEntry.products.length;
         return Number.isFinite(n) && n > 0 ? n : (s.products?.length || undefined);
       })(),
       askPrice: !s.price_formatted,
@@ -770,11 +790,11 @@ const [localOnly, setLocalOnly] = useState(false);
       // Nearby Sellers: ranked by distance (dist_km) from the same response.
       const rankedByDistance = [...finalSellers].sort((a, b) => (a.dist_km ?? 0) - (b.dist_km ?? 0));
 
-      const mapped = mapCuratedSellersToCards(rankedByRank);
+      const mapped = mapCuratedSellersToCards(rankedByRank, mcatId);
       if (mapped.length > 0) {
         mapped[0] = { ...mapped[0], isBestMatch: true };
       }
-      const mappedNearby = mapCuratedSellersToCards(rankedByDistance);
+      const mappedNearby = mapCuratedSellersToCards(rankedByDistance, mcatId);
 
       setSellers(mapped);
       setTopPicks(mapped);

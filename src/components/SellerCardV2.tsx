@@ -76,19 +76,24 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
           )}
         </div>
         <div className="min-w-0 flex-1">
-          {seller.paidUrl ? (
-            <a
-              href={seller.paidUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-              className={`${nameClass} hover:text-teal-700 hover:underline underline-offset-2`}
-            >
-              {seller.name}
-            </a>
-          ) : (
-            <h3 className={nameClass}>{seller.name}</h3>
-          )}
+          <div className="flex items-start gap-1">
+            {seller.paidUrl ? (
+              <a
+                href={seller.paidUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className={`${nameClass} min-w-0 hover:text-teal-700 hover:underline underline-offset-2`}
+              >
+                {seller.name}
+              </a>
+            ) : (
+              <h3 className={`${nameClass} min-w-0`}>{seller.name}</h3>
+            )}
+            {seller.hasTrustSEAL && (
+              <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" aria-label="TrustSEAL" />
+            )}
+          </div>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span className="truncate">{seller.city}</span>
@@ -109,11 +114,6 @@ export default function SellerCardV2({ seller, ribbon, ribbonTone = 'teal' }: Se
           <span className="inline-flex items-center gap-1 border-l border-slate-200 pl-2">
             <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
             <span className="font-semibold">{years} {years === 1 ? 'yr' : 'yrs'}</span>
-          </span>
-        )}
-        {seller.hasTrustSEAL && (
-          <span className="inline-flex items-center gap-1 border-l border-slate-200 pl-2 font-semibold">
-            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />TrustSEAL
           </span>
         )}
       </div>
